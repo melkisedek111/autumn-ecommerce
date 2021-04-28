@@ -14,6 +14,12 @@
                 </a>
             </div>
             <div class="loginRegister__body">
+                <?php if(@session()->has('alert')): ?>
+                    <div class="alertFixed <?= @session()->get('class'); ?>">
+                        <h3><?= @session()->get('head'); ?></h3>
+                        <p><?= @session()->get('message'); ?></p>
+                    </div>
+                <?php endif; ?>
                 <h3>Login to your Account</h3>
                 <div class="break1"></div>
                 <div class="loginRegister__input">
@@ -26,8 +32,8 @@
                     <input type="password" name="password" class="form-control" placeholder="Please enter your password">
                     <div class="invalid-feedback"></div>
                 </div>
-                <!-- <input type="hidden" name="<?= csrf_token(); ?>" value="<?= csrf_hash(); ?>"> -->
-                <input type="submit" name="signin" value="LOG IN" class="btn hover">
+                <input type="hidden" name="<?= csrf_token(); ?>" value="<?= csrf_hash(); ?>">
+                <input type="submit" name="login" value="LOG IN" class="btn hover">
             </div>
         </form>
     </div>

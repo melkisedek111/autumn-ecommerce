@@ -2,13 +2,14 @@
 
 namespace App\Controllers;
 
-use App\Helpers\Validate;
+use App\Helpers\Validation;
+use App\Models\UsersModel;
 
 class User extends BaseController
 {
     protected $session;
     protected $requests;
-    protected $TablesModel;
+    protected $UsersModel;
     protected $token;
     protected $rules;
     protected $messages;
@@ -16,11 +17,11 @@ class User extends BaseController
     protected $validate;
     public function __construct()
     {
-        // $this->TablesModel = new TablesModel;
+        $this->UsersModel = new UsersModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
-        $this->validate = new Validate;
+        $this->validate = new Validation;
         $this->rules =  [
             'register' => [
                 'email' => 'required|valid_email',
@@ -58,13 +59,12 @@ class User extends BaseController
                 ]
             ]
         ];
-        if($this->requests->getPost()) {
-            if(isset($this->requests->getPost()['register'])) {
+        if ($this->requests->getPost()) {
+            if (isset($this->requests->getPost()['register'])) {
                 $this->rulesAndMessages = $this->validate->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
-            } elseif(isset($this->requests->getPost()['login'])) {
+            } elseif (isset($this->requests->getPost()['login'])) {
                 $this->rulesAndMessages = $this->validate->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
             }
-            
         }
     }
 
@@ -80,33 +80,99 @@ class User extends BaseController
         return $isFormValid;
     }
 
-    public function login() {
+    public function login()
+    {
         return view('login_view');
     }
-    public function register() {
+    public function register()
+    {
         return view('register_view', ['pageTitle' => 'Register']);
     }
 
-    public function process() {
-        if($this->requests->getMethod(true) == "POST") {
-            if(isset($this->requests->getPost()['register'])) {
-                unset($_POST['register']);                
+    public function process()
+    {
+        if ($this->requests->getMethod(true) == "POST") {
+            /**
+             * check if the process post if for register, if yes then code below will run
+             */
+            if (isset($this->requests->getPost()['register'])) {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) { // --> this will check if the request is a HTTP request
+                    if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "register")) { // --> validatePost function is to validate all input from the form
+                        $data['internalValidationError'] = true; // --> This is the indicator that if the ajax process validation has an error, back validation will throw an error
+                        $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                        echo json_encode($data);
+                    } else {
+                        if ($this->requests->getPost('checkEmail') == true) { // --> indicator for email checking
+                            $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+                            $count = count($this->UsersModel->check_email($this->requests->getPost())); // --> email count is more than 0 then email already exists!
+                            if ($count == 0) {
+                                $data['isEmailExists'] = false;
+                                echo json_encode($data);
+                            } else {
+                                $data['isEmailExists'] = true;
+                                echo json_encode($data);
+                            }
+                        }
+                        if ($this->requests->getPost('ajaxRegister') == true) { // --> indicator for register user using from ajax
+                            $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+                            if ($this->UsersModel->insert_user(($this->requests->getPost()))) {
+                                $this->validate->alert('alertFixedSuccess', 'Registerd Success', 'You have successfully registered');
+                                $data['registerSuccess'] = true;
+                                echo json_encode($data);
+                            }
+                        }
+                    }
+                    
+                } else {
+                    /**
+                     * Non ajax process
+                     */
+                    unset($_POST['register']);
+                    if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "register")) {
+                        $count = count($this->UsersModel->check_email($this->requests->getPost()));
+                        if ($count != 0) {
+                            $this->session->setFlashdata('register_error_email', 'Email already exists!');
+                            $this->session->setFlashdata('register_value_email', $this->requests->getPost('email'));
+                        }
+                        return redirect()->to('/register');
+                    } else {
+                        if ($this->UsersModel->insert_user(($this->requests->getPost()))) {
+                            return redirect()->to('/login');
+                        }
+                    }
+                }
+            }
+            if (isset($this->requests->getPost()['login'])) {
+                unset($_POST['register']);
                 if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "register")) {
+                    $count = count($this->UsersModel->check_email($this->requests->getPost()));
+                    if ($count != 0) {
+                        $this->session->setFlashdata('register_error_email', 'Email already exists!');
+                        $this->session->setFlashdata('register_value_email', $this->requests->getPost('email'));
+                    }
                     return redirect()->to('/register');
+                } else {
+                    if ($this->UsersModel->insert_user(($this->requests->getPost()))) {
+                        return redirect()->to('/login');
+                    }
                 }
             }
         }
     }
-    public function hello() {
+    public function hello()
+    {
         echo "Hello World!";
     }
-    public function say() {
+    public function say()
+    {
         echo "HI";
     }
-    public function say_anything($a) {
+    public function say_anything($a)
+    {
         echo $a;
     }
-    public function danger() {
+    public function danger()
+    {
         return redirect()->to('/');
     }
 
@@ -143,5 +209,4 @@ class User extends BaseController
     //     $data['token'] = $this->token;
     //     echo json_encode($data);
     // }
-
 }

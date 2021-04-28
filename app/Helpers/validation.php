@@ -3,15 +3,13 @@
 namespace App\Helpers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\Controller;
-class Validate extends Controller
+class Validation extends BaseController
 {
     protected $session;
     protected $requests;
     public function __construct()
     {
-        $this->requests = \Config\Services::request();
-        $this->session = session();
+         $this->session = session();
     }
     
     public function alert($class, $head, $message)
@@ -37,15 +35,4 @@ class Validate extends Controller
         return ['rules' => $setRules, 'messages' => $setMessages];
     }
 
-    public function validatePost(array $rules, array $messages, array $post, string $proxy): bool
-    {
-        $isFormValid = $this->validate($rules, $messages);
-        foreach ($this->validator->getErrors() as $name => $errors) {
-            $this->session->setFlashdata($proxy.'_error_'.$name, $errors);
-        }
-        foreach ($post as $name => $_) {
-            $this->session->setFlashdata($proxy.'_value_'.$name, $post($name));
-        }
-        return $isFormValid;
-    }
 }

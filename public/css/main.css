@@ -2272,7 +2272,7 @@ body::-webkit-scrollbar-thumb {
 }
 
 .alertContainer {
-  z-index: 9999;
+  z-index: 99999;
   position: fixed;
   bottom: 1rem;
   right: 1rem;
@@ -2310,11 +2310,13 @@ body::-webkit-scrollbar-thumb {
 }
 
 .alertContainer .alertSuccess {
-  background-color: lightgreen;
+  border: .5px solid green;
+  background-color: limegreen;
 }
 
 .alertContainer .alertDanger {
-  background-color: lightcoral;
+  border: .5px solid red;
+  background-color: #810000;
 }
 
 .alertContainer .alertProduct {
@@ -2359,7 +2361,8 @@ body::-webkit-scrollbar-thumb {
   margin-top: .5rem;
   padding: .3rem 0;
   width: 100%;
-  background-color: lightgreen;
+  background-color: limegreen;
+  color: white !important;
 }
 
 .alertContainer .alertProduct .messageContainer h4 {
@@ -2367,7 +2370,7 @@ body::-webkit-scrollbar-thumb {
 }
 
 .loading {
-  z-index: 99999;
+  z-index: 9999;
   position: fixed;
   width: 100%;
   height: 100%;
@@ -2380,6 +2383,24 @@ body::-webkit-scrollbar-thumb {
 .loading img {
   height: 20rem;
   width: 20rem;
+}
+
+.alertFixed {
+  display: block;
+  width: auto;
+  color: white;
+  margin: 0 auto;
+  padding: 10px;
+  text-align: center;
+}
+
+.alertFixed h3, .alertFixed p {
+  margin: 0;
+}
+
+.alertFixedSuccess {
+  background-color: limegreen;
+  border: 1px solid lime;
 }
 
 .tbl {

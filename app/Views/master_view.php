@@ -9,6 +9,22 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css" integrity="sha384-AYmEC3Yw5cVb3ZcuHtOA93w35dYTsvhLPVnYs9eStHfGJvOvKxVfELGroGkvsg+p" crossorigin="anonymous"/>
     <link rel="stylesheet" href="/css/main.css"/>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
+    <script>
+        const token = {<?= csrf_token(); ?>: "<?= csrf_hash(); ?>"};
+        function ajax(ajaxData, url_root){
+            const data = {
+                ...token,
+                ...ajaxData
+            };
+            return $.ajax({
+                url: `${url_root}`,
+                method: "POST",
+                data: data,
+                dataType: "json",
+                headers: {'X-Requested-With': 'XMLHttpRequest'}
+            });
+        }
+    </script>
     <title>Autumn | <?= @$pageTitle; ?></title>
 </head>
 <body>
@@ -106,37 +122,42 @@
         </footer> 
     </div>
     <script>
-        $(document).ready(function() {
-            setInterval(() => {
-                setTimeout(() => {
-                    $('.alertProduct').fadeOut(function(){
-                        $(this).remove();
-                    });
-                    $('.alertMessage').fadeOut(function(){
-                        $(this).remove();
-                    });
-                }, 2000);
-            }, 1000);
-            function loading() {
-                $('.loadingContainer').html(
-                    `
-                    <div class="loading">
-                        <img src="loading.svg" alt="">
-                    </div>
-                    `
-                );
-                $('body').addClass("modalOpen");
-            }
-            function unsetLoading() {
-                setTimeout(() => {
-                    $('.loadingContainer').html('');
-                    $('body').removeClass("modalOpen");
-                }, 3000);
-            }
-            // loading();
-            // unsetLoading();
-        }); 
-        
+ 
+        function alertMessage(message, classes) {
+            $('.alertContainer').append(`
+                <div class="alertMessage ${classes}">
+                    <h4>${message}</h4>
+                </div>
+            `).delay(3000).fadeOut(1000).queue(function() { $(this).remove(); });;
+        }
+        // setInterval(() => {
+        //         setTimeout(() => {
+        //             $('.alertProduct').fadeOut(function(){
+        //                 $(this).remove();
+        //             });
+        //             $('.alertMessage').fadeOut(function(){
+        //                 $(this).remove();
+        //             });
+        //         }, 2000);
+        //     }, 3000);
+        function loading() {
+            $('.loadingContainer').html(
+                `
+                <div class="loading">
+                    <img src="loading.svg" alt="">
+                </div>
+                `
+            );
+            $('body').addClass("modalOpen");
+        }
+        function unsetLoading() {
+            setTimeout(() => {
+                $('.loadingContainer').html('');
+                $('body').removeClass("modalOpen");
+            }, 3000);
+        }
+        // loading();
+        // unsetLoading();
     </script>
 </body>
 </html>
