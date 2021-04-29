@@ -53,14 +53,7 @@
                 // email validation function
                 return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
             }
-            /**
-             * validationError function is to show error for each input
-             */
-            function validationError(element, message, error) {
-                $(element).parent().find('.invalid-feedback').html(message);
-                $(element).addClass('error');
-                error.push(true);
-            }
+            
              /**
              * event submit for register form
              */

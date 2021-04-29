@@ -55,65 +55,18 @@ class UsersModel extends Model
         return empty($result->error) ? true : false;
     }
 
-
-
-    public function selectCommentsByMessage(int $id)
-    {
-        $selectMessageQuery = "SELECT comment_id, comment, from_user_id, first_name, last_name, tbl_comments.created_at FROM tbl_comments LEFT JOIN tbl_users ON tbl_comments.from_user_id = tbl_users.user_id WHERE message_id = ? ORDER BY tbl_comments.created_at DESC";
-        $query = $this->db->query($selectMessageQuery, [filter_var($id, FILTER_SANITIZE_NUMBER_INT)]);
-        $row = $query->getResultArray();
-        $this->db->close();
-        if ($row) {
-            return $row;
+    public function login_user(array $posts) {
+        unset($posts['login']);
+        $sanitizedPost = $this->sanitizing($posts);
+        $builder = $this->db->table('tbl_users');
+        $builder->select('user_id, first_name, last_name, email, encrypted_password, salt, image, user_type');
+        $query = $builder->getWhere(['email' => $sanitizedPost['email']]);
+        $user = $query->getRow();
+        $login_encrypted_password = md5("{$sanitizedPost['password']}{$user->salt}");
+        if($login_encrypted_password === $user->encrypted_password) {
+            return $user;
         } else {
             return [];
         }
-    }
-
-    public function createNewComment(array $post, $fromUserId)
-    {
-        unset($post['to_user_id']);
-        $post['from_user_id'] = $fromUserId;
-        $sanitizedPost = $this->sanitizing($post);
-        $insertMessageQuery = "INSERT INTO tbl_comments(comment,message_id,from_user_id) VALUES(?,?,?);";
-        $this->db->query($insertMessageQuery, [...array_values($sanitizedPost)]);// spreading all the values from the sanitizedPost
-        $result = $this->db->affectedRows();
-        return $result ? true : false;
-    }
-
-
-
-    public function createNewPost(array $post, $fromUserId): bool
-    {
-        $post['from_user_id'] = $fromUserId;
-        $sanitizedPost = $this->sanitizing($post);
-        $insertMessageQuery = "INSERT INTO tbl_messages(message,to_user_id,from_user_id) VALUES(?,?,?);";
-        $this->db->query($insertMessageQuery, [...array_values($sanitizedPost)]);// spreading all the values from the sanitizedPost
-        $result = $this->db->affectedRows();
-        return $result ? true : false;
-    }
-
-    public function deletePostMessage(array $post, $fromUserId): bool
-    {
-        $post['to_user_id'] = $post['other_id'];
-        unset($post['other_id']);
-        $post['from_user_id'] = $fromUserId;
-        $sanitizedPost = $this->sanitizing($post);
-        $deleteMessageQuery = "DELETE FROM tbl_messages WHERE message_id = ? AND to_user_id = ? AND from_user_id = ?;";
-        $this->db->query($deleteMessageQuery, [...array_values($sanitizedPost)]);// spreading all the values from the sanitizedPost
-        $result = $this->db->affectedRows();
-        return $result ? true : false;
-    }
-
-    public function deleteMessageComment(array $post, $fromUserId): bool
-    {
-        $post['message_id'] = explode("|", $post['other_id'])[0];
-        unset($post['other_id']);
-        $post['from_user_id'] = $fromUserId;
-        $sanitizedPost = $this->sanitizing($post);
-        $deleteMessageQuery = "DELETE FROM tbl_comments WHERE comment_id = ? AND message_id = ? AND from_user_id = ?;";
-        $this->db->query($deleteMessageQuery, [...array_values($sanitizedPost)]);// spreading all the values from the sanitizedPost
-        $result = $this->db->affectedRows();
-        return $result ? true : false;
     }
 }

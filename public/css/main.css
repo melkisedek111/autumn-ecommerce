@@ -2303,6 +2303,7 @@ body::-webkit-scrollbar-thumb {
   padding: 1rem;
   border: .5px solid lightgrey;
   margin-bottom: 1.5rem;
+  color: white;
 }
 
 .alertContainer .alertMessage h4 {

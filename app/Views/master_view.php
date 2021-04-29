@@ -92,8 +92,12 @@
                     </div>
                 </div>
             </div>
-            
-            <a href="">Login</a>
+            <?php if(session()->has('user')): ?>
+                <!-- <span><?= session()->get('user')->first_name; ?></span> -->
+                <a href="/logout">Logout</a>
+            <?php else: ?>
+                <a href="/login">Login</a>
+            <?php endif; ?>
  
         </div>
     </div>
@@ -129,6 +133,14 @@
                     <h4>${message}</h4>
                 </div>
             `).delay(3000).fadeOut(1000).queue(function() { $(this).remove(); });;
+        }
+        /**
+         * validationError function is to show error for each input
+         */
+        function validationError(element, message, error) {
+            $(element).parent().find('.invalid-feedback').html(message);
+            $(element).addClass('error');
+            error.push(true);
         }
         // setInterval(() => {
         //         setTimeout(() => {
