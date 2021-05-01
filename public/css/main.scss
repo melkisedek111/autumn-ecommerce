@@ -69,6 +69,7 @@ body {
 	}
 	&__userLinks {
 		display: flex;
+		align-items: center;
 		a {
 			display: inline-block;
 			margin-right: 30px;
@@ -80,6 +81,25 @@ body {
 		a:hover {
 			background-color: black;
 			color: white;
+		}
+		.userPlaceholder {
+			display: flex;
+			align-items: center;
+			margin-right: 30px;
+			padding: 5px 10px;
+			.imageHolder {
+				img {
+					border-radius: 50%;
+					height: 2.5rem;
+					width: 2.5rem;
+					object-fit: cover;
+				}
+			}
+			p {
+				margin: 0;
+				font-size: 1.1rem;
+				margin-left: 1rem;
+			}
 		}
 		.nav__cartCount {
 			margin-left: -7px;
@@ -1310,6 +1330,20 @@ body {
 					margin-bottom: 1.5rem;
 				}
 				.productImageList {
+					overflow: auto;
+					height: 390px;
+					max-height: 400px;
+					padding-right: 1.2rem;
+					@include scrollDesign(5px);
+					.selectedImage {
+						cursor: pointer;
+						.deleteImageProduct {
+							display: none;
+						}
+					}
+					.selectedImage:hover .deleteImageProduct {
+						display: block;
+					}
 					> div {
 						> div {
 							margin-bottom: 1.2rem;
@@ -1736,16 +1770,7 @@ body {
 	.break2 {
 		border-bottom: 2px solid black;
 	}
-	.error {
-		border-bottom: .5px solid red;
-	}
-	.invalid-feedback {
-		color: red;
-		font-size: 1.1rem;
-		font-weight: bold;
-		margin-top: 5px;
-		
-	}
+
 	.is-invalid {
 		border: 0.5px solid red !important;
 	}
@@ -1800,7 +1825,15 @@ body {
 		}
 	}
 }
-
+.error {
+	border-bottom: .5px solid red;
+}
+.invalid-feedback {
+	color: red;
+	font-size: 1.1rem;
+	font-weight: bold;
+	margin-top: 5px;
+}
 .alertContainer {
 	z-index: 99999;
 	position: fixed;

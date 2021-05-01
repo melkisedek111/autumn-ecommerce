@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Helpers\Validation;
+use App\Helpers\Utilities;
 use App\Models\UsersModel;
 
 class Home extends BaseController
@@ -14,14 +14,15 @@ class Home extends BaseController
     protected $rules;
     protected $messages;
     protected $rulesAndMessages;
-    protected $validate;
+    protected $utilities;
     public function __construct()
     {
+   
         $this->UsersModel = new UsersModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
-        $this->validate = new Validation;
+        $this->utilities = new Utilities;
         $this->rules =  [
             'register' => [
                 'email' => 'required|valid_email',
@@ -99,9 +100,9 @@ class Home extends BaseController
         ];
         if ($this->requests->getPost()) {
             if (isset($this->requests->getPost()['register'])) {
-                $this->rulesAndMessages = $this->validate->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
+                $this->rulesAndMessages = $this->utilities->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
             } elseif (isset($this->requests->getPost()['login'])) {
-                $this->rulesAndMessages = $this->validate->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
+                $this->rulesAndMessages = $this->utilities->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
             }
         }
     }

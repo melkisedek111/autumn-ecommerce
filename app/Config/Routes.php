@@ -36,6 +36,10 @@ $routes->setAutoRoute(true);
 $routes->get('/', 'Home::index');
 $routes->get('/login', 'User::login');
 $routes->get('/register', 'User::register');
+$routes->get('/logout', 'User::logout');
+$routes->get('/admin', 'User::admin_login');
+$routes->get('/main', 'Admin::index');
+$routes->get('/products', 'Admin::products');
 
 
 

@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 use App\Controllers\BaseController;
-class Validation extends BaseController
+class Utilities extends BaseController
 {
     protected $session;
     protected $requests;
@@ -35,4 +35,30 @@ class Validation extends BaseController
         return ['rules' => $setRules, 'messages' => $setMessages];
     }
 
+    public function isUserLogin(string $user): bool {
+        if($this->session->has('user')) {
+            if($this->session->get('isLogin')) {
+                if($user == 'admin') {
+                    if($this->session->get('user')->user_type != 'admin') {
+                        if(!$this->session->get('isAdminLogin')) {
+                            return false;
+                        }
+                    } else {
+                        return true;
+                    }
+                }
+                if($user == 'normal') {
+                    if($this->session->get('user')->user_type != 'normal') {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            } else {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    }
 }

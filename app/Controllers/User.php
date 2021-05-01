@@ -2,7 +2,7 @@
 
 namespace App\Controllers;
 
-use App\Helpers\Validation;
+use App\Helpers\Utilities;
 use App\Models\UsersModel;
 
 class User extends BaseController
@@ -14,14 +14,14 @@ class User extends BaseController
     protected $rules;
     protected $messages;
     protected $rulesAndMessages;
-    protected $validate;
+    protected $utilities;
     public function __construct()
     {
         $this->UsersModel = new UsersModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
-        $this->validate = new Validation;
+        $this->utilities = new Utilities;
         $this->rules =  [
             'register' => [
                 'email' => 'required|valid_email',
@@ -99,9 +99,9 @@ class User extends BaseController
         ];
         if ($this->requests->getPost()) {
             if (isset($this->requests->getPost()['register'])) {
-                $this->rulesAndMessages = $this->validate->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
+                $this->rulesAndMessages = $this->utilities->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
             } elseif (isset($this->requests->getPost()['login'])) {
-                $this->rulesAndMessages = $this->validate->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
+                $this->rulesAndMessages = $this->utilities->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
             }
         }
     }
@@ -120,11 +120,19 @@ class User extends BaseController
 
     public function login()
     {
-        return view('login_view');
+        return view('login_view', ['pageTitle' => 'Login']);
     }
     public function register()
     {
         return view('register_view', ['pageTitle' => 'Register']);
+    }
+    public function admin_login()
+    {
+        return view('admin_login_view', ['pageTitle' => 'Admin Login']);
+    }
+    public function logout() {
+        $this->session->destroy();
+        return redirect()->to('/login');
     }
 
     public function process()
@@ -160,7 +168,7 @@ class User extends BaseController
                         }
                         if ($this->requests->getPost('ajaxRegister') == true) { // --> 7
                             if ($this->UsersModel->insert_user(($this->requests->getPost()))) {
-                                $this->validate->alert('alertFixedSuccess', 'Registerd Success', 'You have successfully registered');
+                                $this->utilities->alert('alertFixedSuccess', 'Registerd Success', 'You have successfully registered');
                                 $data['registerSuccess'] = true;
                                 echo json_encode($data);
                             }
@@ -204,9 +212,15 @@ class User extends BaseController
                         if ($this->requests->getPost('ajaxLogin') == true) { // --> 2
                             $user = $this->UsersModel->login_user(($this->requests->getPost())); // --> 3
                             if ($user) {
-                                $this->session->set('user', $user);
-                                $data['loginSuccess'] = true;
-                                echo json_encode($data); // 4
+                                if($user->user_type == 'normal') {
+                                    $this->session->set('user', $user);
+                                    $this->session->set('isLogin', true);
+                                    $data['loginSuccess'] = true;
+                                    echo json_encode($data); // 4
+                                } else {
+                                    $data['loginSuccess'] = false;
+                                    echo json_encode($data); // 4
+                                }
                             } else {
                                 $data['loginSuccess'] = false;
                                 echo json_encode($data); // 4
@@ -220,6 +234,17 @@ class User extends BaseController
                         $user = $this->UsersModel->login_user(($this->requests->getPost()));
                         if($user) {
                             // do something
+                            if($user->user_type == 'normal') {
+                                $this->session->set('user', $user);
+                                $this->session->set('isLogin', true);
+                                return redirect()->to('/login');
+                            }
+                            if($user->user_type == "admin") {
+                                $this->session->set('user', $user);
+                                $this->session->set('isLogin', true);
+                                $this->session->set('isAdminLogin', true);
+                                return redirect()->to('/main');
+                            }
                         } else {
                             $this->session->setFlashdata('login_error_email', 'Username or password does not matched!'); // --> 6
                             return redirect()->to('/login');
