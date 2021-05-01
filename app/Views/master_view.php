@@ -12,8 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous"></script>
     <script>
         const token = {<?= csrf_token(); ?>: "<?= csrf_hash(); ?>"};
-        const tokenName = "<?= csrf_token(); ?>";
-        const tokenValue = "<?= csrf_hash(); ?>";
+        let tokenName = "<?= csrf_token(); ?>";
+        let tokenValue = "<?= csrf_hash(); ?>";
         function ajax(ajaxData, url_root){
             if(ajaxData instanceof FormData) {
                 return $.ajax({
@@ -41,9 +41,7 @@
                     dataType: "json",
                     headers: {'X-Requested-With': 'XMLHttpRequest'}
                 });
-            }
-            
-            
+            }            
         }
     </script>
     <title>Autumn | <?= @$pageTitle; ?></title>
@@ -53,7 +51,7 @@
 
 </div>
 <div class="alertContainer">
-        <div class="alertProduct">
+        <!-- <div class="alertProduct">
             <div class="detailContainer">
                 <img src="https://images.pexels.com/photos/157675/fashion-men-s-individuality-black-and-white-157675.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
                <div>
@@ -70,7 +68,7 @@
         </div>
         <div class="alertMessage alertDanger">
             <h4>Product has been Deleted</h4>
-        </div>
+        </div> -->
     </div>
     <div class="nav">
         <a href="/home" class="nav__icon">AUTUMN</a>
@@ -155,13 +153,24 @@
         </footer> 
     </div>
     <script>
- 
+        function deleteModal(messageHeader, id, indicator) {
+            $('body').prepend(`<div class="modal">
+                    <div>
+                        <h1>${messageHeader}</h1>
+                        <h3>Are you sure you want to delete! <span>This action can't be undone</span></h3>
+                        <button class="btn hover" id="removeModalDelete">Cancel</button>
+                        <button class="btn hover-danger" data-delete-modal-id="${id}" data-delete-indicator="${indicator}" id="deleteModalBtn">Delete</button>
+                    </div>
+                </div>`);
+        }
+        $(document).on('click', '#removeModalDelete', function() {
+            $(this).parent().parent().remove();
+        });
+
         function alertMessage(message, classes) {
-            $('.alertContainer').append(`
-                <div class="alertMessage ${classes}">
+            $('.alertContainer').append(`<div class="alertMessage ${classes}">
                     <h4>${message}</h4>
-                </div>
-            `)
+                </div>`);
             $('.alertMessage').delay(3000).fadeOut(1000).queue(function() { $(this).remove(); });
         }
         /**

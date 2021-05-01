@@ -1392,7 +1392,7 @@ body {
 							background-color: red;
 						}
 					}
-					select:focus ~ .selectOpions {
+					select:focus ~ .selectOptions {
 						display: block;
 						option {
 							display: none;
@@ -1400,7 +1400,7 @@ body {
 							z-index: -1;
 						}
 					}
-					.selectOpions {
+					.selectOptions {
 						z-index: 999;
 						display: none;
 						max-height: 195.5px;
@@ -1425,9 +1425,23 @@ body {
 							background-color: #000000;
 							border: 2px solid #555555;
 						}
-						> div {
+						.selectOption {
 							padding: 0.8rem 0;
 							cursor: pointer;
+							// z-index: 100;
+							position: relative;
+							.loadingSelectOption {
+								position: absolute;
+								display: grid;
+								place-items: center;
+								width: 100%;		
+								background: rgba(0,0,0, .2);						
+								// z-index: 101;
+								img {
+									height: 2.5rem;
+									width: 2.5rem;
+								}
+							}
 							h3,
 							input {
 								margin: 0 0.8rem;
@@ -1448,18 +1462,25 @@ body {
 							display: flex;
 							justify-content: space-between;
 							align-items: center;
+							> div {
+								display: none;
+							}
+
 						}
 
-						> div:hover {
+						.selectOption:hover > .selectOptionButtons {
+							display: block;
+						}
+						.selectOption:hover {
 							background-color: rgb(245, 245, 245);
 							// color: white;
 						}
 					}
-					.selectOpions:focus-within {
+					.selectOptions:focus-within {
 						display: block;
 					}
-					.selectOpions:focus,
-					.selectOpions:hover {
+					.selectOptions:focus,
+					.selectOptions:hover {
 						display: block;
 					}
 				}
@@ -1580,7 +1601,7 @@ body {
 						background-color: red;
 					}
 				}
-				select:focus ~ .selectOpions {
+				select:focus ~ .selectOptions {
 					display: block;
 					option {
 						display: none;
@@ -1588,7 +1609,7 @@ body {
 						z-index: -1;
 					}
 				}
-				.selectOpions {
+				.selectOptions {
 					z-index: 999;
 					display: none;
 					max-height: 195.5px;
@@ -1643,11 +1664,11 @@ body {
 						// color: white;
 					}
 				}
-				.selectOpions:focus-within {
+				.selectOptions:focus-within {
 					display: block;
 				}
-				.selectOpions:focus,
-				.selectOpions:hover {
+				.selectOptions:focus,
+				.selectOptions:hover {
 					display: block;
 				}
 			}
@@ -1931,6 +1952,39 @@ body {
 	background-color: limegreen;
 	border: 1px solid lime;
 }
+
+.modal {
+	display: grid;
+	place-items: center;
+	// padding: 1rem 0;
+	z-index: 1000;
+	width: 100%;
+	height: 100vh;
+	position: fixed;
+	background: rgba(0, 0, 0, .3);
+	overflow-y: scroll;
+	@include scrollDesign();
+	top: 0;
+	left: 0;
+	> div {
+		text-align: center;
+		h1 {
+			color: red;
+		}
+		h1, h3 {
+			margin: 0;
+		}
+		h3 {
+			margin-bottom: 1.3rem;
+			span {
+				color: #810000;
+			}
+		}
+		background-color: white;
+		padding: 1.3rem;
+	}
+}
+
 
 .tbl {
 	border-collapse: collapse;

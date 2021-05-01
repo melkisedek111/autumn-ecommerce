@@ -30,7 +30,8 @@ class Admin extends BaseController
                 'brand_id' => 'required|numeric',
                 'description' => 'required',
                 'price' => 'required|decimal',
-
+                'category_name' => 'required|min_length[2]|max_length[250]',
+                'brand_name' => 'required|min_length[2]|max_length[250]',
         ];
         $this->messages = [
             'name' => [
@@ -57,15 +58,37 @@ class Admin extends BaseController
                 'uploaded' => 'Product image is required',
                 'mime_in' => 'Invalid file image type',
                 'max_size' => 'Image max files size is 2MB'
-            ]
+            ],
+            'category_name' => [
+                'required' => 'Category is required!',
+                'min_length' => 'Category name should at least 2 characters',
+                'max_length' => 'Category name should be maximum 250 characters'
+            ],
+            'brand_name' => [
+                'required' => 'Category is required!',
+                'min_length' => 'Category name should at least 2 characters',
+                'max_length' => 'Category name should be maximum 250 characters'
+            ],
         ];
         if ($this->requests->getPost()) {
             $this->rulesAndMessages = $this->utilities->getRules($this->rules, $this->messages, $this->requests->getPost());
-
         }
     }
 
-    protected function validatePost(array $rules, array $messages, array $post, string $proxy): bool
+    protected function validatePost(array $rules, array $messages, array $post, string $proxy = ''): bool
+    {
+       $isFormValid = $this->validate($rules, $messages);
+        foreach ($this->validator->getErrors() as $name => $errors) {
+            $this->session->setFlashdata($proxy.'_error_'.$name, $errors);
+        }
+        if(count($this->validator->getErrors())){
+            foreach ($post as $name => $_) {
+                $this->session->setFlashdata($proxy.'_value_'.$name, $post[$name]);
+            }
+        }
+        return $isFormValid;
+    }
+    protected function validatePostWithImage(array $rules, array $messages, array $post, string $proxy = ''): bool
     {
         $imageRules = [
             'imageFiles' => [
@@ -86,68 +109,32 @@ class Admin extends BaseController
         foreach ($this->validator->getErrors() as $name => $errors) {
             $this->session->setFlashdata($proxy.'_error_'.$name, $errors);
         }
-        foreach ($post as $name => $_) {
-            $this->session->setFlashdata($proxy.'_value_'.$name, $post[$name]);
+        if(count($this->validator->getErrors())){
+            foreach ($post as $name => $_) {
+                $this->session->setFlashdata($proxy.'_value_'.$name, $post[$name]);
+            }
         }
         return $isFormValid;
     }
 
-    protected function validatePostImage(string $proxy): bool
-    {
-        $imageValid = $this->validate([
-            'imageFiles' => [
-                'uploaded[imageFiles]',
-                'mime_in[imageFiles,image/jpg,image/jpeg,image/png]',
-                'max_size[imageFiles,2024]',
-            ]
-            ],[
-                'imageFiles' => [
-                    'uploaded' => 'Product image is required',
-                    'mime_in' => 'Invalid file image type',
-                    'max_size' => 'Image max files size is 2MB'
-                ]
-            ]);
-        foreach ($this->validator->getErrors() as $name => $errors) {
-            $this->session->setFlashdata($proxy.'_error_'.$name, $errors);
-        }
-        return $imageValid;
-    }
+
 
     public function index()
     {
+
         if(!$this->utilities->isUserLogin('admin')) return redirect()->to('/admin');
         return view('main_view');
     }  
     
     public function products() {
         if(!$this->utilities->isUserLogin('admin')) return redirect()->to('/admin');
-        $categories = [
-            ['category_id' => 1, 'category_name' => 'Bags & Backpacks'],
-            ['category_id' => 2, 'category_name' => 'Pands & Jeans'],
-            ['category_id' => 3, 'category_name' => 'Pendants & Necklace'],
-            ['category_id' => 4, 'category_name' => 'T Shirts'],
-        ];
-        $brands = [
-            ['brand_id' => 1, 'brand_name' => 'The North Face'],
-            ['brand_id' => 2, 'brand_name' => 'The Chanel'],
-            ['brand_id' => 3, 'brand_name' => 'Altarago'],
-            ['brand_id' => 4, 'brand_name' => 'Johny Doe'],
-        ];
+        $categories = $this->ProductsModel->get_categories_brand('tbl_categories', 'category_id, category_name', 'created_at DESC');
+        $brands = $this->ProductsModel->get_categories_brand('tbl_brands', 'brand_id, brand_name', 'created_at DESC');
         return view('product_list_view', ['categories' => $categories, 'brands' => $brands]);
     }
 
     public function add_product_process() {
-        // echo '<pre>';
-        // echo WRITEPATH;
-        // echo PHP_EOL;
-        // var_dump($this->requests->getFiles('productImages'));
-        // // $file = $this->requests->getFileMultiple('productImages')[0];
-        // // $newName = $file->getRandomName();
-        // // var_dump($file->move(ROOTPATH.'public/assets/product_uploads', $newName));
-        // exit;
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
-
-
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "product")) {
                 $data['internalValidationError'] = true;
@@ -168,22 +155,113 @@ class Admin extends BaseController
                             } else {
                                 $imageContainer[] = ['image' => $newName, 'status' => 0];
                             }
+
                          }else{
-                            // Response
-                            $data['success'] = 2;
                             $data['message'] = 'File not uploaded.'; 
                          }
                     }
-                    var_dump($imageContainer);
-                    // $data['data'] = $this->requests->getPost();
-                    // $data['productImages'] = $this->requests->getFiles('productImages');
-                    // echo json_encode($data);
-                    // var_dump($this->requests->getFiles('productImages'));
-                    exit;
+                    $success = $this->ProductsModel->add_product($this->requests->getPost(), $imageContainer);
+                    $data['data'] = $success ? ['success' => true] : ['success' => false]; 
+                    $data['productImages'] = $imageContainer;
+                    echo json_encode($data);
                 }
             }
-            
         }
+    }
+
+    public function update_process() {
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                $data['dump'] = $this->requests->getPost();
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    if($this->requests->getPost('category_name')) {
+                        $success = $this->ProductsModel->update_category_brand('tbl_categories', $this->requests->getPost(), 'category');
+                        $data['data'] = [
+                            'exists' => @$success['category_exists'] ? 'Category name already exists' : false,
+                            'updated' => count($success) ? 'Category has been updated' : false,
+                            'error' => $success == 'error' ? true : false,
+                            'category' => $success
+                        ];
+                        echo json_encode($data);
+                    }
+                    if($this->requests->getPost('brand_name')) {
+                        $success = $this->ProductsModel->update_category_brand('tbl_brands', $this->requests->getPost(), 'brand');
+                        $data['data'] = [
+                            'exists' => @$success['brand_exists'] ? 'Brand name already exists' : false,
+                            'updated' => count($success) ? 'Brand has been updated' : false,
+                            'error' => $success == 'error' ? true : false,
+                            'brand' => $success
+                        ];
+                        echo json_encode($data);
+                    }
+                   
+                }
+            }
+        }
+    }
+    public function add_category_brand() {
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    if($this->requests->getPost('category_name')) {
+                        $success = $this->ProductsModel->add_category($this->requests->getPost());
+                        $data['data'] = [
+                            'exists' => @$success['category_exists'] ? 'Category name already exists' : false,
+                            'added' => count($success) ? 'Category has been added' : false,
+                            'error' => $success == 'error' ? true : false,
+                            'category' => @$success[0]
+                        ];
+                        echo json_encode($data);
+                    }
+                    if($this->requests->getPost('brand_name')) {
+                        $success = $this->ProductsModel->add_brand($this->requests->getPost());
+                        $data['data'] = [
+                            'exists' => @$success['brand_exists'] ? 'Brand name already exists' : false,
+                            'added' => count($success) ? 'Brand has been added' : false,
+                            'error' => $success == 'error' ? true : false,
+                            'brand' => @$success[0]
+                        ];
+                        echo json_encode($data);
+                    }
+                   
+                }
+            }
+        }
+    }
+    public function delete_process() {
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                $data['dump'] = $this->requests->getPost();
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $indicator = $this->requests->getPost('indicator');
+                    $table = $indicator == 'category' ? 'tbl_categories' : ($indicator == 'brand' ? 'tbl_brands' : '');
+                    $success = $this->ProductsModel->delete_category_brand($table, $this->requests->getPost(), $indicator);
+                    $data['data'] = [
+                        'deleted' => $success ? ucwords($indicator) . " has been deleted" : false,
+                        'error' => !$success ? true : false,
+                        $indicator => $success
+                    ];
+                    echo json_encode($data);                  
+                }
+            }
+        }
+    }
+    public function get_total_row_products() {
 
     }
 }

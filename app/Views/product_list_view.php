@@ -73,17 +73,17 @@
                         <div class="invalid-feedback"><?= @session()->get('product_error_name'); ?></div>
                     </div>
                     <div>
-                        <label for="name">Description</label>
+                        <label for="description">Description</label>
                         <textarea name="description" cols="30" rows="10" id="description"  class="form-control textArea-control-2 formInput <?= session()->has('product_error_description') ? "error" : ""; ?>" placeholder="product description" data-required-message="Product description is required!"><?= @session()->get('product_value_description'); ?></textarea>
                         <div class="invalid-feedback"><?= @session()->get('product_error_description'); ?></div>
                     </div>
                     <div>
-                        <label for="name">Price</label>
+                        <label for="price">Price</label>
                         <input type="text" name="price" class="form-control formInput <?= session()->has('product_error_price') ? "error" : ""; ?>" id="price"  placeholder="product price" value="<?= @session()->get('product_value_price'); ?>" data-required-message="Product price is required!">
                         <div class="invalid-feedback"><?= @session()->get('product_error_price'); ?></div>
                     </div>
                     <div class="modifiedSelect">
-                        <label for="name">Categories</label>
+                        <label for="categories">Categories</label>
                         <select name="category_id" id="categories"  class="form-control parentSelect formInput <?= session()->has('product_error_category_id') ? "error" : ""; ?>" data-required-message="Product category is required!">
                             <?php if(session()->has('product_value_category_id')): ?>
                                 <?php foreach($categories as $category):?>
@@ -95,51 +95,25 @@
                             <option value="">Select Category</option>
                         </select>
                         <div class="invalid-feedback"><?= @session()->get('product_error_category_id'); ?></div>
-                        <div class="selectOpions" tabindex="-1">
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Bags & Backpacks" data-name="category" data-id="1">Bags & Backpacks</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="category" data-id="1"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="1"></span>
+                        <div class="categoryOptions selectOptions" tabindex="-1">
+                            <?php foreach($categories as $category):?>
+                                <div class="selectOption">
+                                    <h3 class="selectValue" data-select-value="<?= $category->category_name; ?>" data-name="category" data-id="<?= $category->category_id; ?>"><?= $category->category_name; ?></h3>
+                                    <div class="selectOptionButtons">
+                                        <span class="far fa-edit editSelect" data-name="category" data-select-value="<?= $category->category_name; ?>" data-id="<?= $category->category_id; ?>"></span>
+                                        <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="<?= $category->category_id; ?>"></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Pants & Jeans" data-name="category" data-id="2">Pants & Jeans</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="category" data-id="2"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="2"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Pendant & Necklace" data-name="category" data-id="3">Pendant & Necklace</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="category" data-id="3"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="3"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="T - Shirts" data-name="category" data-id="4">T - Shirts</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="category" data-id="4"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="4"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Jackets" data-name="category" data-id="5">Jackets</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="category" data-id="5"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="5"></span>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div>
-                        <label for="name">or add new Category</label>
-                        <input type="text" id="addNewCategory" class="form-control" placeholder="add new product category">
+                        <label for="addNewCategory">or add new Category</label>
+                        <input type="text" id="addNewCategory" class="form-control addNewCategoryBrand" placeholder="add new product category" data-name="category_name">
                         <div class="invalid-feedback"></div>
                     </div>
                     <div class="modifiedSelect">
-                        <label for="name">Brands</label>
+                        <label for="brand">Brands</label>
                         <select name="brand_id" id="brand" class="form-control formInput <?= session()->has('product_error_brand_id') ? "error" : ""; ?> parentSelect" data-required-message="Product brand is required!">
                             <?php if(session()->has('product_value_brand_id')): ?>
                                 <?php foreach($brands as $brand):?>
@@ -151,52 +125,26 @@
                             <option value="">Select Brand</option>
                         </select>
                         <div class="invalid-feedback"><?= @session()->get('product_error_brand_id'); ?></div>
-                        <div class="selectOpions" tabindex="-1">
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="The North Face" data-name="brand" data-id="1">The North Face</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="brand" data-id="1"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="brand" data-id="1"></span>
+                        <div class="brandOptions selectOptions" tabindex="-1">
+                            <?php foreach($brands as $brand):?>
+                                <div class="selectOption">
+                                    <h3 class="selectValue" data-select-value="<?= $brand->brand_name; ?>" data-name="brand" data-id="<?= $brand->brand_id; ?>"><?= $brand->brand_name; ?></h3>
+                                    <div class="selectOptionButtons">
+                                        <span class="far fa-edit editSelect" data-select-value="<?= $brand->brand_name; ?>" data-name="brand" data-id="<?= $brand->brand_id; ?>"></span>
+                                        <span class="far fa-trash-alt deleteBrand" data-name="brand" data-id="<?= $brand->brand_id; ?>"></span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="The Chanel" data-name="brand" data-id="2">The Chanel</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="brand" data-id="2"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="brand" data-id="2"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Altarago" data-name="brand" data-id="3">Altarago</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="brand" data-id="3"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="brand" data-id="3"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Johny Doe" data-name="brand" data-id="4">Johny Doe</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="brand" data-id="4"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="brand" data-id="4"></span>
-                                </div>
-                            </div>
-                            <div class="selectOpion">
-                                <h3 class="selectValue" data-select-value="Calvin Klein" data-name="brand" data-id="5">Calvin Klein</h3>
-                                <div>
-                                    <span class="far fa-edit editSelect" data-name="brand" data-id="5"></span>
-                                    <span class="far fa-trash-alt deleteCategory" data-name="brand" data-id="5"></span>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
                     <div>
                         <label for="name">or add new Brand</label>
-                        <input type="text" class="form-control" id="addNewBrand" placeholder="add new product brand">
+                        <input type="text" class="form-control addNewCategoryBrand" id="addNewBrand" placeholder="add new product brand" data-name="brand_name">
                         <div class="invalid-feedback"></div>
                     </div>
                     <div>
                        
-                        <label for="name">Upload new image</label>
+                        <label for="image">Upload new image</label>
                         <input type="file" id="image" name="image[]" class="form-control formInput <?= session()->has('product_error_image') ? "error" : ""; ?>" multiple data-required-message="Product image is required!">
                         <div class="invalid-feedback"><?= @session()->get('product_error_image'); ?></div>
                     </div>
@@ -217,6 +165,7 @@
         </div>
     </div>
     <script>
+
         $(document).ready(function(){
             <?php if(session()->has('product_error_name') || session()->has('product_error_description') || session()->has('product_error_price') || session()->has('product_error_category_id') || session()->has('product_error_brand_id') || session()->has('product_error_image')): ?>
                 $('.adminProduct__modal').slideDown(function(){
@@ -229,6 +178,8 @@
             const addProductFormData = new FormData();
             const imageContainer = [];
             let setMainImageIndex = '';
+
+
             /**
              * PRICE INPUT is only number will be input when keypress
              */
@@ -379,7 +330,15 @@
                     addProductFormData.append(tokenName, tokenValue);
                     const response = ajax(addProductFormData, '/admin/add_product_process');
                     response.done(e => {
-                        console.log(e);
+                        tokenName = e.token.name;
+                        tokenValue = e.token.value;
+                        if(e.data.success) {
+                            $('#imageLists').html('');
+                            $('.formInput').each(function() {
+                                $(this).val('');
+                            });
+                            $('.closeModal').click();
+                        }
                     })
                 }
             });
@@ -391,7 +350,7 @@
              * it will get the attribute of data-select-value, data-id and data-name
              * those attribute will be use as data for the <option></option> tag for the select
              */
-            $(document).on('click', '.selectOpion', function() {
+            $(document).on('click', '.selectOption', function() {
                 if($(this).find('.selectValue').length) {
                     const value = $(this).find('.selectValue').attr('data-select-value');
                     const id = $(this).find('.selectValue').attr('data-id');
@@ -410,20 +369,22 @@
              * 
              */
             $(document).on('click', '.editSelect', function() {
-                const categoryId = $(this).parent().parent().find('.selectValue').attr('data-id');
-                const categoryName = $(this).parent().parent().find('.selectValue').attr('data-select-value');
+                const id = $(this).attr('data-id');
+                const name = $(this).attr('data-select-value');
+                const indicator = $(this).attr('data-name');
                 $(this).parent().parent().find('.selectValue').remove();
                 if(!$(this).parent().parent().find('input').length) {
                     $(this).parent().parent().prepend(`
-                        <input class="form-control inputEditSelect" value="${categoryName}" data-select-value="${categoryName}" data-id="${categoryId}" />
+                        <input class="form-control inputEditSelect" value="${name}" data-select-value="${name}" data-id="${id}" data-name="${indicator}"/>
                     `); 
+                    $(this).parent().parent().find('.inputEditSelect').focus();
                     $(this).parent().prepend(`
-                        <span class="far fa-times cancelEditSelect" data-id="${categoryId}"></span>
+                        <span class="far fa-pen-square cancelEditSelect" data-select-value="${name}" data-name="${indicator}" data-id="${id}"></span>
                     `); 
                 }
                 $(this).remove();
                 $('.cancelEditSelect').each((index, element) => {
-                    if(element.getAttribute('data-id') !== categoryId) {
+                    if(element.getAttribute('data-id') !== id) {
                         $(element).click();
                     }
                 });
@@ -438,34 +399,168 @@
              * 
              */
             $(document).on('click', '.cancelEditSelect', function() {
-                const categoryId = $(this).parent().parent().find('.inputEditSelect').attr('data-id');
-                const categoryName = $(this).parent().parent().find('.inputEditSelect').attr('data-select-value');
-
+                const id = $(this).attr('data-id');
+                const name = $(this).attr('data-select-value');
+                const indicator = $(this).attr('data-name');
                 $(this).parent().parent().find('.inputEditSelect').remove();
                 if(!$(this).parent().parent().find('h3').length) {
                     $(this).parent().parent().prepend(`
-                        <h3 class="selectValue" data-select-value="${categoryName}" data-id="${categoryId}">${categoryName}</h3>
+                        <h3 class="selectValue" data-select-value="${name}" data-name="${indicator}" data-id="${id}">${name}</h3>
                     `); 
                     $(this).parent().prepend(`
-                        <span class="far fa-edit editSelect"></span>
+                        <span class="far fa-edit editSelect" data-select-value="${name}" data-name="${indicator}" data-id="${id}"></span>
                     `); 
                 }
                 $(this).remove();
+            });
+
+            $(document).on('change', '.addNewCategoryBrand', function() {
+                const name = $(this).val().trim();
+                const dataName = $(this).attr('data-name');
+                if(name) {
+                    if(name.length > 3) {
+                        const trimedName = name.charAt(0).toUpperCase() + name.slice(1);
+                        const response = ajax({[dataName]: sanitizeHtml(name)}, '/admin/add_category_brand');
+                        response.done(e => {
+                            token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                            if(e.internalValidationError) {
+                                alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                            } else {
+                                if(e.data.exists) {
+                                    validationError($(this), e.data.exists, errorInput);
+                                    return false
+                                }
+                                if(e.data.added) {
+                                    $(this).val('');
+                                    revertField($(this));
+                                    alertMessage(e.data.added, 'alertSuccess');
+                                    if(e.data.category) {
+                                        $('.categoryOptions').prepend(
+                                            `<div class="selectOption">
+                                                <h3 class="selectValue" data-select-value="${e.data.category.category_name}" data-name="category" data-id="${e.data.category.category_id}">${e.data.category.category_name}</h3>
+                                                <div>
+                                                    <span class="far fa-edit editSelect" data-name="category" data-id="${e.data.category.category_id}"></span>
+                                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="${e.data.category.category_id}"></span>
+                                                </div>
+                                            </div>`
+                                        );
+                                    }
+                                    if(e.data.brand) {
+                                        $('.brandOptions').prepend(
+                                            `<div class="selectOption">
+                                                <h3 class="selectValue" data-select-value="${e.data.brand.brand_name}" data-name="brand" data-id="${e.data.brand.brand_id}">${e.data.brand.brand_name}</h3>
+                                                <div>
+                                                    <span class="far fa-edit editSelect" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
+                                                    <span class="far fa-trash-alt deleteBrand" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
+                                                </div>
+                                            </div>`
+                                        );
+                                    }
+                                    return false;
+                                }
+                                if(e.data.error) {
+                                    $(this).val('');
+                                    alertMessage('Somethine went wrong', 'alertDanger');
+                                    return false;
+                                }
+                            }
+                        });
+                    } else {
+                        validationError($(this), "Category name should be at least 3 characters", errorInput);
+                        return false
+                    }
+                }
+            })
+            
+            $(document).on('click', '.deleteCategory, .deleteBrand', function() {
+                const id = $(this).attr('data-id');
+                const indicator = $(this).attr('data-name');
+                let messageHead = '';
+                if(indicator == 'category') {
+                    messageHead = 'DELETE CATEGORY';
+                } else if (indicator == 'brand') {
+                    messageHead = 'DELETE BRAND';
+                }
+                deleteModal(messageHead, id, indicator);
+            });
+            $(document).on('click', '#deleteModalBtn', function() {
+                const value = $(this).attr('data-delete-modal-id');
+                const indicator = $(this).attr('data-delete-indicator');
+                const response = ajax({[`${indicator}_id`]: value, indicator: indicator}, '/admin/delete_process');
+                response.done(e => {
+                    console.log(e);
+                })
 
             });
-            $(document).on('focusout', '.selectOpions', function() {
-                
+
+            
+            $(document).on('focusout', '.inputEditSelect', function() {
+                $(this).parent().parent().children().each(function(index, element){
+                    if($(element).find('.inputEditSelect').length > 0) {
+                        if($(element).children('.inputEditSelect').val().trim()) {
+                            const name = $(element).children('.inputEditSelect').attr('data-name');
+                            const value = $(element).children('.inputEditSelect').val();
+                            const id = $(element).children('.inputEditSelect').attr('data-id');
+                            if($(element).children('.inputEditSelect').val() != $(element).children('.inputEditSelect').attr('data-select-value')) {
+                                $(element).prepend(`
+                                <div class="loadingSelectOption">
+                                        <img src="loading.svg" alt="">
+                                    </div>
+                                `);
+                                const response = ajax({[`${name}_name`]: sanitizeHtml(value), [`${name}_id`]: sanitizeHtml(id)}, '/admin/update_process');
+                                response.done(e => {
+                                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                                    setTimeout(() => {
+                                        $('.loadingSelectOption').remove();
+                                        if(e.internalValidationError) {
+                                            alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                                        } else {
+                                            if(e.data.exists) {
+                                                validationError($(element).parent(), e.data.exists, errorInput);
+                                                return false
+                                            }
+                                            if(e.data.updated) {
+                                                revertField($(element).parent());
+                                                alertMessage(e.data.updated, 'alertSuccess');
+                                                if(e.data.category) {
+                                                    $(element).children('.inputEditSelect').attr('data-select-value', e.data.category.category_name);
+                                                    $(element).children('.selectOptionButtons').find('.cancelEditSelect').attr('data-select-value', e.data.category.category_name);
+                                                    $(element).children('.selectOptionButtons').find('.cancelEditSelect').click();
+                                                }
+                                                if(e.data.brand) {
+                                                    $(element).children('.inputEditSelect').attr('data-select-value', e.data.brand.brand_name);
+                                                    $(element).children('.selectOptionButtons').find('.cancelEditSelect').attr('data-select-value', e.data.brand.brand_name);
+                                                    $(element).children('.selectOptionButtons').find('.cancelEditSelect').click();
+                                                }
+                                                return false;
+                                            }
+                                            if(e.data.error) {
+                                                $(this).val('');
+                                                alertMessage('Somethine went wrong', 'alertDanger');
+                                                return false;
+                                            }
+                                        }
+                                    }, 2000);
+                                });
+                            } else {
+                                $(element).children('.inputEditSelect').attr('data-select-value', value);
+                                $(element).children('.selectOptionButtons').find('.cancelEditSelect').attr('data-select-value', value);
+                                $(element).children('.selectOptionButtons').find('.cancelEditSelect').click();
+                            }
+                        }
+                    }
+                });
             });
 
             $(document).on('click', '.editProduct', function() {
                 
-                $('.adminProduct__modal').slideDown(function(){
+                $('.adminProduct__modal').show(function(){
                     $('body').addClass("modalOpen");
                 });
                 
             }); 
             $(document).on('click', '.closeModal', function() {
-                $('.adminProduct__modal').slideUp(function(){
+                $('.adminProduct__modal').hide(function(){
                     $('body').removeClass("modalOpen");
                 });
                 
@@ -479,7 +574,7 @@
                 // $('price').val();
                 // $('categories').val();
                 // $('brands').val();
-                $('.adminProduct__modal').slideDown(function(){
+                $('.adminProduct__modal').show(function(){
                     $('body').addClass("modalOpen");
                 });
             });

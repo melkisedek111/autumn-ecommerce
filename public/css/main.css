@@ -1766,17 +1766,17 @@ body::-webkit-scrollbar-thumb {
   background-color: red;
 }
 
-.adminProduct__modal--form form .modifiedSelect select:focus ~ .selectOpions {
+.adminProduct__modal--form form .modifiedSelect select:focus ~ .selectOptions {
   display: block;
 }
 
-.adminProduct__modal--form form .modifiedSelect select:focus ~ .selectOpions option {
+.adminProduct__modal--form form .modifiedSelect select:focus ~ .selectOptions option {
   display: none;
   background-color: red;
   z-index: -1;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions {
+.adminProduct__modal--form form .modifiedSelect .selectOptions {
   z-index: 999;
   display: none;
   max-height: 195.5px;
@@ -1789,24 +1789,25 @@ body::-webkit-scrollbar-thumb {
   overflow-y: scroll;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions::-webkit-scrollbar-track {
+.adminProduct__modal--form form .modifiedSelect .selectOptions::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   background-color: #f5f5f5;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions::-webkit-scrollbar {
+.adminProduct__modal--form form .modifiedSelect .selectOptions::-webkit-scrollbar {
   width: 5px;
   background-color: #f5f5f5;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions::-webkit-scrollbar-thumb {
+.adminProduct__modal--form form .modifiedSelect .selectOptions::-webkit-scrollbar-thumb {
   background-color: #000000;
   border: 2px solid #555555;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption {
   padding: 0.8rem 0;
   cursor: pointer;
+  position: relative;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -1818,36 +1819,58 @@ body::-webkit-scrollbar-thumb {
           align-items: center;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div h3,
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div input {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption .loadingSelectOption {
+  position: absolute;
+  display: -ms-grid;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption .loadingSelectOption img {
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption h3,
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption input {
   margin: 0 0.8rem;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div input {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption input {
   width: 70%;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div span {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption span {
   margin-right: 0.8rem;
   font-size: 1.1em;
   padding: 0.5rem;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div span:hover {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption span:hover {
   background-color: black;
   color: white;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions > div:hover {
-  background-color: whitesmoke;
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption > div {
+  display: none;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions:focus-within {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption:hover > .selectOptionButtons {
   display: block;
 }
 
-.adminProduct__modal--form form .modifiedSelect .selectOpions:focus,
-.adminProduct__modal--form form .modifiedSelect .selectOpions:hover {
+.adminProduct__modal--form form .modifiedSelect .selectOptions .selectOption:hover {
+  background-color: whitesmoke;
+}
+
+.adminProduct__modal--form form .modifiedSelect .selectOptions:focus-within {
+  display: block;
+}
+
+.adminProduct__modal--form form .modifiedSelect .selectOptions:focus,
+.adminProduct__modal--form form .modifiedSelect .selectOptions:hover {
   display: block;
 }
 
@@ -1988,17 +2011,17 @@ body::-webkit-scrollbar-thumb {
   background-color: red;
 }
 
-.addProduct__form form .modifiedSelect select:focus ~ .selectOpions {
+.addProduct__form form .modifiedSelect select:focus ~ .selectOptions {
   display: block;
 }
 
-.addProduct__form form .modifiedSelect select:focus ~ .selectOpions option {
+.addProduct__form form .modifiedSelect select:focus ~ .selectOptions option {
   display: none;
   background-color: red;
   z-index: -1;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions {
+.addProduct__form form .modifiedSelect .selectOptions {
   z-index: 999;
   display: none;
   max-height: 195.5px;
@@ -2011,22 +2034,22 @@ body::-webkit-scrollbar-thumb {
   overflow-y: scroll;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions::-webkit-scrollbar-track {
+.addProduct__form form .modifiedSelect .selectOptions::-webkit-scrollbar-track {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
   background-color: #f5f5f5;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions::-webkit-scrollbar {
+.addProduct__form form .modifiedSelect .selectOptions::-webkit-scrollbar {
   width: 5px;
   background-color: #f5f5f5;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions::-webkit-scrollbar-thumb {
+.addProduct__form form .modifiedSelect .selectOptions::-webkit-scrollbar-thumb {
   background-color: #000000;
   border: 2px solid #555555;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div {
+.addProduct__form form .modifiedSelect .selectOptions > div {
   padding: 0.8rem 0;
   cursor: pointer;
   display: -webkit-box;
@@ -2040,36 +2063,36 @@ body::-webkit-scrollbar-thumb {
           align-items: center;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div h3,
-.addProduct__form form .modifiedSelect .selectOpions > div input {
+.addProduct__form form .modifiedSelect .selectOptions > div h3,
+.addProduct__form form .modifiedSelect .selectOptions > div input {
   margin: 0 0.8rem;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div input {
+.addProduct__form form .modifiedSelect .selectOptions > div input {
   width: 70%;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div span {
+.addProduct__form form .modifiedSelect .selectOptions > div span {
   margin-right: 0.8rem;
   font-size: 1.1em;
   padding: 0.5rem;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div span:hover {
+.addProduct__form form .modifiedSelect .selectOptions > div span:hover {
   background-color: black;
   color: white;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions > div:hover {
+.addProduct__form form .modifiedSelect .selectOptions > div:hover {
   background-color: whitesmoke;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions:focus-within {
+.addProduct__form form .modifiedSelect .selectOptions:focus-within {
   display: block;
 }
 
-.addProduct__form form .modifiedSelect .selectOpions:focus,
-.addProduct__form form .modifiedSelect .selectOpions:hover {
+.addProduct__form form .modifiedSelect .selectOptions:focus,
+.addProduct__form form .modifiedSelect .selectOptions:hover {
   display: block;
 }
 
@@ -2464,6 +2487,57 @@ body::-webkit-scrollbar-thumb {
 .alertFixedSuccess {
   background-color: limegreen;
   border: 1px solid lime;
+}
+
+.modal {
+  display: -ms-grid;
+  display: grid;
+  place-items: center;
+  z-index: 1000;
+  width: 100%;
+  height: 100vh;
+  position: fixed;
+  background: rgba(0, 0, 0, 0.3);
+  overflow-y: scroll;
+  top: 0;
+  left: 0;
+}
+
+.modal::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #f5f5f5;
+}
+
+.modal::-webkit-scrollbar {
+  width: 10px;
+  background-color: #f5f5f5;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background-color: #000000;
+  border: 2px solid #555555;
+}
+
+.modal > div {
+  text-align: center;
+  background-color: white;
+  padding: 1.3rem;
+}
+
+.modal > div h1 {
+  color: red;
+}
+
+.modal > div h1, .modal > div h3 {
+  margin: 0;
+}
+
+.modal > div h3 {
+  margin-bottom: 1.3rem;
+}
+
+.modal > div h3 span {
+  color: #810000;
 }
 
 .tbl {
