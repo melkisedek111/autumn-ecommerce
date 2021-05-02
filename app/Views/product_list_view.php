@@ -22,33 +22,22 @@
                             <th width="15%">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td><img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt=""></td>
-                            <td>20</td>
-                            <td>9/6/2014</td>
-                            <td>1000</td>
-                            <td>20</td>
-                            <td>
-                                <div class="productTableAction">
-                                        <button class="btn hover editProduct" ><span class="far fa-edit"></span></button>
-                                        <button class="btn hover-danger"><span class="far fa-trash"></span></button>
-                                </div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td><img src="https://images.pexels.com/photos/157675/fashion-men-s-individuality-black-and-white-157675.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt=""></td>
-                            <td>10</td>
-                            <td>9/6/2014</td>   
-                            <td>2000</td>
-                            <td>150</td>
-                            <td>
-                                <div class="productTableAction">
-                                    <button class="btn hover editProduct"><span class="far fa-edit"></span></button>
-                                        <button class="btn hover-danger"><span class="far fa-trash"></span></button>
-                                </div>
+                    <tbody id="productsTbody">
+                        <?php foreach($products as $product): ?>
+                            <tr>
+                                <td><img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->name ?>"></td>
+                                <td><?= $product->product_id ?></td>
+                                <td><?= $product->name ?></td>   
+                                <td><?= $product->stock_quantity ? $product->stock_quantity : 0 ?></td>
+                                <td><?= $product->stock_sold ? $product->stock_sold : 0 ?></td>
+                                <td>
+                                    <div class="productTableAction">
+                                        <button class="btn hover editProduct" data-id="<?= $product->product_id ?>"><span class="far fa-edit"></span></button>
+                                            <button class="btn hover-danger" data-id="<?= $product->product_id ?>"><span class="far fa-trash"></span></button>
+                                    </div>
                                 </td>
-                        </tr>
+                            </tr>
+                        <?php endforeach; ?>
                     </tbody>
                 </table>
                 <div class="tablePagination">
@@ -97,7 +86,7 @@
                         <div class="invalid-feedback"><?= @session()->get('product_error_category_id'); ?></div>
                         <div class="categoryOptions selectOptions" tabindex="-1">
                             <?php foreach($categories as $category):?>
-                                <div class="selectOption">
+                                <div class="selectOption" data-name="category" data-id="<?= $category->category_id; ?>">
                                     <h3 class="selectValue" data-select-value="<?= $category->category_name; ?>" data-name="category" data-id="<?= $category->category_id; ?>"><?= $category->category_name; ?></h3>
                                     <div class="selectOptionButtons">
                                         <span class="far fa-edit editSelect" data-name="category" data-select-value="<?= $category->category_name; ?>" data-id="<?= $category->category_id; ?>"></span>
@@ -127,7 +116,7 @@
                         <div class="invalid-feedback"><?= @session()->get('product_error_brand_id'); ?></div>
                         <div class="brandOptions selectOptions" tabindex="-1">
                             <?php foreach($brands as $brand):?>
-                                <div class="selectOption">
+                                <div class="selectOption" data-name="brand" data-id="<?= $brand->brand_id; ?>">
                                     <h3 class="selectValue" data-select-value="<?= $brand->brand_name; ?>" data-name="brand" data-id="<?= $brand->brand_id; ?>"><?= $brand->brand_name; ?></h3>
                                     <div class="selectOptionButtons">
                                         <span class="far fa-edit editSelect" data-select-value="<?= $brand->brand_name; ?>" data-name="brand" data-id="<?= $brand->brand_id; ?>"></span>
@@ -176,17 +165,19 @@
             const errorImage = [];
             const errorInput = [];
             const addProductFormData = new FormData();
+            // const updateProductFormData = new FormData();
             const imageContainer = [];
+            const updateImageToAddContainer = [];
+            const imageDeletedContainer = [];
             let setMainImageIndex = '';
-
-
+            let isProductUpdate = false;
+            let imageProductCount = 0;
             /**
              * PRICE INPUT is only number will be input when keypress
              */
             $(document).on('keypress', '#price', function(evt) {
                 evt = evt ? evt : window.event;
                 var charCode = evt.which ? evt.which : evt.keyCode;
-                
                 if (charCode > 31 && (charCode < 48 || charCode > 57) && (charCode < 45 || charCode > 46)) {
                     return false;
                 }
@@ -199,7 +190,9 @@
              */
             $(document).on('change', '#image', function() {
                 errorImage.length = 0;
-                $('#imageLists').html('');
+                if(!isProductUpdate) {
+                    $('#imageLists').html('');
+                }
                 const fileInput = document.getElementById('image');
                 for(const imageFile in fileInput.files) {
                     if(imageFile !== 'length' && imageFile !== 'item') {
@@ -227,8 +220,12 @@
                                  * append the images to a form data
                                  */
                                 revertField($(this));
-                                addProductFormData.append('imageFiles[]', fileInput.files[imageFile]);
+                                // addProductFormData.append('imageFiles[]', fileInput.files[imageFile]);
                                 imageContainer.push(fileInput.files[imageFile]);
+                                // if(isProductUpdate) {
+                                //     updateProductFormData.append('imageFiles[]', fileInput.files[imageFile]);
+                                //     updateImageToAddContainer.push(fileInput.files[imageFile]);
+                                // }
                                 /**
                                  * create a new instance of a FileReader();
                                  * once the reader ready, then onload the images and append to the div with a id #imageList to show the selected images
@@ -241,7 +238,7 @@
                                             <h3>${fileInput.files[imageFile].name}</h3>
                                             <span class="deleteImageProduct far fa-trash-alt" data-image-index="${imageFile}"></span>
                                             <div>
-                                                <input type="checkbox" class="setMainImage" data-count-image="${imageFile}">
+                                                <input type="checkbox" class="setMainImage" data-image-set="new" data-count-image="${imageFile}">
                                                 <label for="">Main</label>
                                             </div>
                                         </div>
@@ -259,6 +256,8 @@
              */
             $(document).on('click', '.setMainImage', function() {
                 const index = $(this).attr('data-count-image');
+
+
                 /**
                  * Loop all the instance of selected images with checkboxes, if the selected images is not checked then the other selected images will be unchecked and the selected image will be check and set
                  */
@@ -269,14 +268,18 @@
                         element.checked = true;
                     }
                 });
-                /**
-                 * Set the index of the main images
-                 * then append setMainImageIndex to the form data
-                 */
-                setMainImageIndex = index;
-                addProductFormData.append('setMainImageIndex', setMainImageIndex);
+                if(isProductUpdate && !$(this).attr('data-image-set')) {
+                    setMainImageIndex = $(this).attr('data-count-image');
+                    addProductFormData.append('previousImageSetMain', setMainImageIndex);    
+                } else {
+                    /**
+                     * Set the index of the main images
+                     * then append setMainImageIndex to the form data
+                     */
+                    setMainImageIndex = index;
+                    addProductFormData.append('setMainImageIndex', setMainImageIndex);
+                }
                 alertMessage('Main image has been set', 'alertSuccess');
-                console.log(setMainImageIndex);
             })
 
             /**
@@ -292,14 +295,13 @@
                 if($(this).parent().find('div').find('input:checked').length > 0) {
                     setMainImageIndex = '';
                     addProductFormData.delete('setMainImageIndex');
-                    console.log(setMainImageIndex);
                 }
                 $(this).parent().remove();
                 imageContainer.splice(index, 1);
-                addProductFormData.delete('imageFiles[]');
-                imageContainer.forEach((data) => {
-                    addProductFormData.append('imageFiles[]', data);
-                });
+                // addProductFormData.delete('imageFiles[]');
+                // imageContainer.forEach((data) => {
+                //     addProductFormData.append('imageFiles[]', data);
+                // });
                 alertMessage('Image has been removed', 'alertDanger');
             });
 
@@ -313,12 +315,12 @@
                 e.preventDefault();
                 errorInput.length = 0;
                 $('.formInput').each(function() {
-                    if($(this).val() == '') {
-                        validationError($(this), $(this).attr('data-required-message'), errorInput);
-                    } else if (!imageContainer.length && $(this).attr('name') == 'image[]') {
+                    if($(this).val() == '' && $(this).attr('name') != 'image[]') {
                         validationError($(this), $(this).attr('data-required-message'), errorInput);
                     } else if (setMainImageIndex == '' && $(this).attr('name') == 'image[]') {
                         validationError($(this), 'Please set a main image', errorInput);
+                    } else if (!imageContainer.length && $(this).attr('name') == 'image[]' && !isProductUpdate) {
+                        validationError($(this), $(this).attr('data-required-message'), errorInput);
                     } else {
                         if($(this).attr('name') !== 'image[]') {
                             addProductFormData.append($(this).attr('name'), sanitizeHtml($(this).val()));
@@ -327,9 +329,19 @@
                     }
                 });
                 if(!errorImage.length && !errorInput.length && setMainImageIndex !== '') {
+                    loading();
+                    imageContainer.forEach((data) => {
+                        addProductFormData.append('imageFiles[]', data);
+                    });
+                    if(isProductUpdate) {
+                        addProductFormData.append('imageToBeDeleted', JSON.stringify(imageDeletedContainer));
+                    }
                     addProductFormData.append(tokenName, tokenValue);
                     const response = ajax(addProductFormData, '/admin/add_product_process');
                     response.done(e => {
+                        /**
+                         * Refreshing the token
+                         */
                         tokenName = e.token.name;
                         tokenValue = e.token.value;
                         if(e.data.success) {
@@ -337,7 +349,27 @@
                             $('.formInput').each(function() {
                                 $(this).val('');
                             });
+                            /**
+                             * When adding product is successful then prepend to table tbody
+                             */
+                            $('#productsTbody').prepend(`
+                                <tr>
+                                    <td><img src="/assets/product_uploads/${e.data.product.image}" alt="${e.data.name}"></td>
+                                    <td>${e.data.product.product_id}</td>
+                                    <td>${e.data.product.name}</td>   
+                                    <td>${e.data.product.stock_quantity ? e.data.product.stock_quantity : 0}</td>
+                                    <td>${e.data.product.stock_sold ? e.data.product.stock_sold : 0}</td>
+                                    <td>
+                                        <div class="productTableAction">
+                                            <button class="btn hover editProduct" data-id="${e.data.product.product_id}"><span class="far fa-edit"></span></button>
+                                                <button class="btn hover-danger" data-id="${e.data.product.product_id}"><span class="far fa-trash"></span></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `);
                             $('.closeModal').click();
+                            unsetLoading();
+                            alertMessage('Product has been added', 'alertSuccess'); // --> message if there are somethings wrong in validations
                         }
                     })
                 }
@@ -414,15 +446,25 @@
                 $(this).remove();
             });
 
+            /**
+             * Event for adding category and brand
+             * trimming the white spaces on the input
+             * get the attributes
+             * check if the input data is less than 2 then throw alert
+             * if not then add the category of brand
+             */
+            
             $(document).on('change', '.addNewCategoryBrand', function() {
                 const name = $(this).val().trim();
                 const dataName = $(this).attr('data-name');
                 if(name) {
-                    if(name.length > 3) {
+                    if(name.length > 2) {
                         const trimedName = name.charAt(0).toUpperCase() + name.slice(1);
                         const response = ajax({[dataName]: sanitizeHtml(name)}, '/admin/add_category_brand');
                         response.done(e => {
                             token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                            tokenName = e.token.name;
+                            tokenValue = e.token.value;
                             if(e.internalValidationError) {
                                 alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
                             } else {
@@ -434,11 +476,14 @@
                                     $(this).val('');
                                     revertField($(this));
                                     alertMessage(e.data.added, 'alertSuccess');
+                                    /**
+                                     * prepend the newly added category or brand in select options like
+                                     */
                                     if(e.data.category) {
                                         $('.categoryOptions').prepend(
-                                            `<div class="selectOption">
+                                            `<div class="selectOption" data-name="category" data-id="${e.data.category.category_id}">
                                                 <h3 class="selectValue" data-select-value="${e.data.category.category_name}" data-name="category" data-id="${e.data.category.category_id}">${e.data.category.category_name}</h3>
-                                                <div>
+                                                <div class="selectOptionButtons">
                                                     <span class="far fa-edit editSelect" data-name="category" data-id="${e.data.category.category_id}"></span>
                                                     <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="${e.data.category.category_id}"></span>
                                                 </div>
@@ -447,9 +492,9 @@
                                     }
                                     if(e.data.brand) {
                                         $('.brandOptions').prepend(
-                                            `<div class="selectOption">
+                                            `<div class="selectOption" data-name="brand" data-id="${e.data.brand.brand_id}">
                                                 <h3 class="selectValue" data-select-value="${e.data.brand.brand_name}" data-name="brand" data-id="${e.data.brand.brand_id}">${e.data.brand.brand_name}</h3>
-                                                <div>
+                                                <div class="selectOptionButtons">
                                                     <span class="far fa-edit editSelect" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
                                                     <span class="far fa-trash-alt deleteBrand" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
                                                 </div>
@@ -471,7 +516,14 @@
                     }
                 }
             })
-            
+
+            /**
+             * Deteleting category or brand modal
+             * get the required attributes
+             * indicotor on which is needed to be deleted
+             * then show modal
+             */
+
             $(document).on('click', '.deleteCategory, .deleteBrand', function() {
                 const id = $(this).attr('data-id');
                 const indicator = $(this).attr('data-name');
@@ -483,17 +535,61 @@
                 }
                 deleteModal(messageHead, id, indicator);
             });
+
+            /**
+             * deleteModalBtn - button from the modal, since modal is executed once, the operation is global whenever deleteModalBtn is being called then do some stuff on the event e.g  $(document).on('click', '#deleteModalBtn', function() { do something here });
+             * get the required attributes
+             * 
+             */
             $(document).on('click', '#deleteModalBtn', function() {
+                loading();
                 const value = $(this).attr('data-delete-modal-id');
                 const indicator = $(this).attr('data-delete-indicator');
-                const response = ajax({[`${indicator}_id`]: value, indicator: indicator}, '/admin/delete_process');
+                const response = ajax({[`${indicator}_id`]: sanitizeHtml(value), indicator: sanitizeHtml(indicator)}, '/admin/delete_process');
                 response.done(e => {
-                    console.log(e);
+                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                    tokenName = e.token.name;
+                    tokenValue = e.token.value;
+                    if(e.internalValidationError) {
+                        alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                    } else {
+                        if(e.data.deleted) {
+                            /**
+                             * if deleted is success
+                             * then delete the selected option from the options
+                             */
+                            setTimeout(() => {
+                                $('.selectOption').each(function(index, element) {
+                                    const name = $(element).attr('data-name');
+                                    const id = $(element).attr('data-id');
+                                    if(name == e.data.indicator && id == e.data.id) {
+                                        $(element).parent().parent().find('select').val('');
+                                        $(element).remove();
+                                    };
+                                });
+                                removeModalDelete();
+                                unsetLoading();
+                                alertMessage(e.data.deleted, 'alertDanger');
+                                return false;
+                            }, 1500);
+                        }
+                        if(e.data.error) {
+                            alertMessage('Somethine went wrong', 'alertDanger');
+                            return false;
+                        }
+                    }
                 })
 
             });
 
-            
+            /**
+             * when the edit option has been focusout do something
+             * check if there is a class inputEditSelect then check if the lenght of the input field
+             * trim the input
+             * get the required attributes
+             * if the value of the input is not equal to the data-select-value then do nothing
+             * if the value of the input is not equal to the data-select-value then do something
+             */
             $(document).on('focusout', '.inputEditSelect', function() {
                 $(this).parent().parent().children().each(function(index, element){
                     if($(element).find('.inputEditSelect').length > 0) {
@@ -501,7 +597,11 @@
                             const name = $(element).children('.inputEditSelect').attr('data-name');
                             const value = $(element).children('.inputEditSelect').val();
                             const id = $(element).children('.inputEditSelect').attr('data-id');
+
                             if($(element).children('.inputEditSelect').val() != $(element).children('.inputEditSelect').attr('data-select-value')) {
+                                /**
+                                 * prepend loading indicator
+                                 */
                                 $(element).prepend(`
                                 <div class="loadingSelectOption">
                                         <img src="loading.svg" alt="">
@@ -510,6 +610,8 @@
                                 const response = ajax({[`${name}_name`]: sanitizeHtml(value), [`${name}_id`]: sanitizeHtml(id)}, '/admin/update_process');
                                 response.done(e => {
                                     token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                                    tokenName = e.token.name;
+                                    tokenValue = e.token.value;
                                     setTimeout(() => {
                                         $('.loadingSelectOption').remove();
                                         if(e.internalValidationError) {
@@ -522,6 +624,9 @@
                                             if(e.data.updated) {
                                                 revertField($(element).parent());
                                                 alertMessage(e.data.updated, 'alertSuccess');
+                                                /**
+                                                 * if updating category or brand success then prepend to their respective select tags 
+                                                 */
                                                 if(e.data.category) {
                                                     $(element).children('.inputEditSelect').attr('data-select-value', e.data.category.category_name);
                                                     $(element).children('.selectOptionButtons').find('.cancelEditSelect').attr('data-select-value', e.data.category.category_name);
@@ -553,27 +658,108 @@
             });
 
             $(document).on('click', '.editProduct', function() {
-                
+                $('#addProduct').val('Update');
+                $('.formInput').each(function() {
+                    revertField($(this));
+                });
+                const id = $(this).attr('data-id');
+                $('#formModalHeading').html(`Edit product - ID ${id}`);
+                const response = ajax({product_id: sanitizeHtml(id)}, '/admin/get_product');
+                response.done(e => {
+                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+                    tokenName = e.token.name;
+                    tokenValue = e.token.value;
+                    console.log(e);
+                    isProductUpdate = true;
+                    imageProductCount = e.data.images.length;
+                    addProductFormData.append('product_id', e.data.details.product_id);
+                    addProductFormData.append('isProductUpdate', isProductUpdate);
+                    $('#imageLists').html('');
+                    $('#name').val(e.data.details.name);
+                    $('#description').val(e.data.details.description);
+                    $('#price').val(e.data.details.price);
+                    $('#categories').prepend(`
+                        <option value="${e.data.details.category_id}" selected>${e.data.details.category_name}</option>
+                    `);
+                    $('#brand').prepend(`
+                        <option value="${e.data.details.brand_id}" selected>${e.data.details.brand_name}</option>
+                    `);
+                    for(const image of e.data.images) {
+                        if(image.status == 1) {
+                            setMainImageIndex = image.image_id;
+                            addProductFormData.append('previousImageSetMain', image.image_id);    
+                        }
+                        $('#imageLists').prepend(
+                            `<div class="selectedImage">
+                                <img src="/assets/product_uploads/${image.image}" alt="">
+                                <h3>${image.image}</h3>
+                                <span class="deleteImageOnUpdate far fa-trash-alt" data-image-name="${image.image}" data-image-index="${image.image_id}"></span>
+                                <div>
+                                    <input type="checkbox" class="setMainImage" data-count-image="${image.image_id}" ${image.status == 1 ? "checked": ""}>
+                                    <label for="">Main</label>
+                                </div>
+                            </div>`
+                        );
+                    }
+                });
                 $('.adminProduct__modal').show(function(){
                     $('body').addClass("modalOpen");
                 });
-                
             }); 
+
+            $(document).on('click', '.undoDeleteImage', function() {
+                const id = $(this).attr('data-image-index');
+                for(const imageToUndo in imageDeletedContainer) {
+                    if(imageDeletedContainer[imageToUndo].id == id) {
+                        $(this).parent().find('h3').removeClass('unlisted');
+                        $(this).parent().find('div').find('input').attr('disabled', false);
+                        $(this).parent().find('h3').after(`<span class="deleteImageOnUpdate far fa-trash-alt" data-image-name="${imageDeletedContainer[imageToUndo].image}" data-image-index="${imageDeletedContainer[imageToUndo].image_id}"></span>`);
+                        $(this).remove();
+                        imageDeletedContainer.splice(imageToUndo, 1);
+                    }
+                }
+                imageProductCount++;
+                alertMessage('The has been undo', 'alertSuccess');
+                return false;
+            });
+            $(document).on('click', '.deleteImageOnUpdate', function() {
+                if(imageProductCount != 1) {
+                    const id = $(this).attr('data-image-index');
+                    const image = $(this).attr('data-image-name');
+                    $(this).parent().find('h3').addClass('unlisted');
+                    $(this).parent().find('div').find('input').prop('checked', false).attr('disabled', true);
+                    $(this).parent().find('h3').after(`<span class="undoDeleteImage colorSuccess far fa-undo" data-image-name="${image}" data-image-index="${id}"></span>`);
+                    imageDeletedContainer.push({imageName: image, id: id});
+                    imageProductCount--;
+                    setMainImageIndex = '';
+                    $(this).remove();
+                    alertMessage('This image will be deleted!', 'alertDanger');
+                    return false;
+                } else {
+                    alertMessage('There should be at least 1 image, this cannot be deleted', 'alertDanger');
+                    return false
+                }
+            });
+
+
+
             $(document).on('click', '.closeModal', function() {
                 $('.adminProduct__modal').hide(function(){
+                    isProductUpdate = false;
                     $('body').removeClass("modalOpen");
                 });
                 
             }); 
-            $(document).on('change', '#image', function() {
-
-            });
             $(document).on('click', '#addNewProductBtn', function() {
-                // $('name').val();
-                // $('description').val();
-                // $('price').val();
-                // $('categories').val();
-                // $('brands').val();
+                $('#name').val('');
+                $('#description').val('');
+                $('#price').val('');
+                $('#categories').val('');
+                $('#brand').val('');
+                $('#image').val('');
+                $('#imageLists').html('');
+                $('#formModalHeading').html('Add new product');
+                $('#addProduct').val('Add');
                 $('.adminProduct__modal').show(function(){
                     $('body').addClass("modalOpen");
                 });

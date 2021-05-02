@@ -24,7 +24,45 @@ class ProductsModel extends Model
         }, $array);
     }
 
-    public function add_product(array $posts, array $images): int
+    public function get_products(int $id = null): array {
+        $productsBuilder = $this->db->table('tbl_products');
+        $productsBuilder->select('tbl_products.product_id as product_id, name, description, stock_quantity, stock_sold, stock_status, image');
+        $productsBuilder->join('tbl_product_images', 'tbl_product_images.product_id = tbl_products.product_id');
+        $productsBuilder->join('tbl_stocks', 'tbl_stocks.product_id = tbl_products.product_id', 'left');
+        $productsBuilder->where('tbl_product_images.status', 1);
+        $productsBuilder->orderBy('tbl_products.created_at', 'DESC');
+        if($id) {
+            $productsBuilder->where('tbl_products.product_id', $id);
+        }
+        $products = $productsBuilder->get();
+        return $products->getResult();
+    }
+
+    public function get_product(array $posts): array {
+        $sanitizedPost = $this->sanitizing($posts);
+        $productsBuilder = $this->db->table('tbl_products');
+        $productsBuilder->select('tbl_products.product_id as product_id, tbl_products.category_id as category_id, category_name, tbl_products.brand_id as brand_id, brand_name, price, name, description');
+        $productsBuilder->join('tbl_categories', 'tbl_categories.category_id = tbl_products.category_id', 'left');
+        $productsBuilder->join('tbl_brands', 'tbl_brands.brand_id = tbl_products.brand_id', 'left');
+        $productsBuilder->where('tbl_products.product_id', $sanitizedPost['product_id']);
+        $product = $productsBuilder->get();
+        $productDetails = $product->getRow();
+        
+        $productImageBuilder = $this->db->table('tbl_product_images');
+        $productImageBuilder->select('image_id, product_id, image, status');
+        $productImageBuilder->where('product_id', $sanitizedPost['product_id']);
+        $images = $productImageBuilder->get();
+        $productImages = $images->getResult();
+        
+        return ['details' => $productDetails, 'images' => $productImages];
+
+    }
+
+    public function update_product(array $posts) {
+        
+    }
+
+    public function add_product(array $posts, array $images): array
     {
         unset($posts['setMainImageIndex']);
         $sanitizedPost = $this->sanitizing($posts);
@@ -45,8 +83,9 @@ class ProductsModel extends Model
             $imagesWithMainSet[] = ['product_id' => $lastId, 'image' => $image['image'], 'status' => $image['status']];
         }
         $insertProductImagesBuilder = $this->db->table('tbl_product_images');
-        $resultInsertProductImages = $insertProductImagesBuilder->insertBatch($imagesWithMainSet);
-        return $resultInsertProductImages;
+        $insertProductImagesBuilder->insertBatch($imagesWithMainSet);
+        $lastInsertedProduct = $this->get_products($lastId);
+        return $lastInsertedProduct;
     }
 
     
@@ -147,19 +186,4 @@ class ProductsModel extends Model
         return empty($result->error) ? true : false;
     }
 
-    public function login_user(array $posts)
-    {
-        unset($posts['login']);
-        $sanitizedPost = $this->sanitizing($posts);
-        $builder = $this->db->table('tbl_users');
-        $builder->select('user_id, first_name, last_name, email, encrypted_password, salt, image, user_type');
-        $query = $builder->getWhere(['email' => $sanitizedPost['email']]);
-        $user = $query->getRow();
-        $login_encrypted_password = md5("{$sanitizedPost['password']}{$user->salt}");
-        if ($login_encrypted_password === $user->encrypted_password) {
-            return $user;
-        } else {
-            return [];
-        }
-    }
 }

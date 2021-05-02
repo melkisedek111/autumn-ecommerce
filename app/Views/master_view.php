@@ -162,9 +162,14 @@
                         <button class="btn hover-danger" data-delete-modal-id="${id}" data-delete-indicator="${indicator}" id="deleteModalBtn">Delete</button>
                     </div>
                 </div>`);
+            $('body').addClass("modalOpen");
+        }
+        function removeModalDelete() {
+            $('.modal').remove();
         }
         $(document).on('click', '#removeModalDelete', function() {
             $(this).parent().parent().remove();
+            // $('body').removeClass("modalOpen");
         });
 
         function alertMessage(message, classes) {
@@ -208,8 +213,10 @@
         function unsetLoading() {
             setTimeout(() => {
                 $('.loadingContainer').html('');
-                $('body').removeClass("modalOpen");
-            }, 3000);
+                if(!$('.adminProduct__modal').length) {
+                    $('body').removeClass("modalOpen");
+                }
+            }, 1500);
         }
         // loading();
         // unsetLoading();

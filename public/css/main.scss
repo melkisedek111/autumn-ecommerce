@@ -603,6 +603,7 @@ body {
 	outline: none;
 	font-size: 18px;
 	width: 100%;
+	font-weight: bolder;
 }
 .textArea-control {
 	height: 100px;
@@ -1337,11 +1338,22 @@ body {
 					@include scrollDesign(5px);
 					.selectedImage {
 						cursor: pointer;
-						.deleteImageProduct {
+						.deleteImageProduct, .deleteImageOnUpdate, .undoDeleteImage {
 							display: none;
+						}
+						h3 {
+							width: 200px;
+							max-height: 250px;
+							word-wrap: break-word;
 						}
 					}
 					.selectedImage:hover .deleteImageProduct {
+						display: block;
+					}
+					.selectedImage:hover .deleteImageOnUpdate {
+						display: block;
+					}
+					.selectedImage:hover .undoDeleteImage {
 						display: block;
 					}
 					> div {
@@ -1856,7 +1868,7 @@ body {
 	margin-top: 5px;
 }
 .alertContainer {
-	z-index: 99999;
+	z-index: 999999;
 	position: fixed;
 	bottom: 1rem;
 	right: 1rem;
@@ -1924,7 +1936,7 @@ body {
 }
 
 .loading {
-	z-index: 9999;
+	z-index: 999999;
 	position: fixed;
 	width: 100%;
 	height: 100%;
@@ -1935,6 +1947,15 @@ body {
 		height: 20rem;
 		width: 20rem;
 	}
+}
+
+.unlisted {
+	text-decoration: line-through;
+	color:red;
+}
+
+.colorSuccess {
+	color: 	limegreen !important;
 }
 
 .alertFixed {
