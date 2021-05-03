@@ -342,6 +342,8 @@
                         /**
                          * Refreshing the token
                          */
+
+                        token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
                         tokenName = e.token.name;
                         tokenValue = e.token.value;
                         if(e.data.success) {
@@ -723,6 +725,9 @@
                 return false;
             });
             $(document).on('click', '.deleteImageOnUpdate', function() {
+                if($(this).parent().find('div').find('input:checked').length > 0) {
+                    setMainImageIndex = '';
+                }
                 if(imageProductCount != 1) {
                     const id = $(this).attr('data-image-index');
                     const image = $(this).attr('data-image-name');
@@ -731,7 +736,6 @@
                     $(this).parent().find('h3').after(`<span class="undoDeleteImage colorSuccess far fa-undo" data-image-name="${image}" data-image-index="${id}"></span>`);
                     imageDeletedContainer.push({imageName: image, id: id});
                     imageProductCount--;
-                    setMainImageIndex = '';
                     $(this).remove();
                     alertMessage('This image will be deleted!', 'alertDanger');
                     return false;
@@ -760,6 +764,7 @@
                 $('#imageLists').html('');
                 $('#formModalHeading').html('Add new product');
                 $('#addProduct').val('Add');
+                isProductUpdate = false;
                 $('.adminProduct__modal').show(function(){
                     $('body').addClass("modalOpen");
                 });

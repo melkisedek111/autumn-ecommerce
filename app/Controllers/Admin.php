@@ -134,8 +134,13 @@ class Admin extends BaseController
     
     public function products()
     {
+
         // echo '<pre>';
-        // var_dump();
+        // $q = json_decode(stripslashes('[{\"imageName\":\"1619952297_cba1dd45bafd2dbe37b6.jpg\",\"id\":\"66\"},{\"imageName\":\"1619952297_07ee6eb92f78daaa2680.jpg\",\"id\":\"65\"}]'));
+        // foreach($q as $s) {
+        //     unset($s->imageName);
+        // }
+        // var_dump(array_values($q));
         // exit;
         if (!$this->utilities->isUserLogin('admin')) {
             return redirect()->to('/admin');
@@ -159,8 +164,17 @@ class Admin extends BaseController
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
                     if ($this->requests->getPost('isProductUpdate')) {
                         $data['data'] = $this->requests->getPost();
-                        $data['images'] = $this->requests->getFiles() ? $this->requests->getFiles() : false;
-                        $data['imageToBeDeleted'] = json_decode(stripslashes($this->requests->getPost('imageToBeDeleted')));
+                        $imageContainer = [];
+                        if($this->requests->getFiles()) {
+                            $imageContainer = $this->upload_images($this->requests->getFiles());
+                        }
+                        $imageToBeDeleted = [];
+                        if($this->requests->getPost('imageToBeDeleted')) {
+                            $imageToBeDeleted = json_decode(stripslashes($this->requests->getPost('imageToBeDeleted')));
+                            $data['imageToBeDeleted'] = $imageToBeDeleted;
+                        }
+                        $success = $this->ProductsModel->update_product($this->requests->getPost(), $imageContainer, $imageToBeDeleted);
+                        $data['data'] = $success;
                         echo json_encode($data);
                     } else {
                         $imageContainer = $this->upload_images($this->requests->getFiles());

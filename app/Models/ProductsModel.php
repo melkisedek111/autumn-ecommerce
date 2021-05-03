@@ -11,6 +11,7 @@ class ProductsModel extends Model
     public function __construct()
     {
         $this->db = \Config\Database::connect();
+        date_default_timezone_set('Asia/Manila');
     }
 
     protected function sanitizing(array $array): array
@@ -58,8 +59,43 @@ class ProductsModel extends Model
 
     }
 
-    public function update_product(array $posts) {
-        
+    public function update_product(array $posts, array $images = [], array $imageToBeDeleted): int {
+        unset($posts['imageToBeDeleted']);
+        $sanitizedPost = $this->sanitizing($posts);
+        if($imageToBeDeleted) {
+            $imageId = [];
+            foreach($imageToBeDeleted as $image) {
+                $imageId[] = $image->id;
+            }
+            $sql = "DELETE FROM tbl_product_images WHERE image_id IN ?";
+            $this->db->query($sql, [$imageId]);
+            $this->db->affectedRows();
+        }
+        if($images || @$sanitizedPost['setMainImageIndex']) {
+            foreach ($images as $image) {
+                $imagesWithMainSet[] = ['product_id' => $sanitizedPost['product_id'], 'image' => $image['image'], 'status' => $image['status']];
+            }
+            $updateProductImagesBuilder = $this->db->table('tbl_product_images');
+            $updateProductImagesBuilder->insertBatch($imagesWithMainSet);
+        } else {
+            $sql = "UPDATE tbl_product_images SET status = IF(image_id = ?, 1, 0) WHERE product_id = ?";
+            $this->db->query($sql, [$sanitizedPost['previousImageSetMain'], $sanitizedPost['product_id']]);
+            $this->db->affectedRows();
+            // $updateProductImagesBuilder = $this->db->table('tbl_product_images');   
+            // $updateProductImagesBuilder->update(['status' => 1], "image_id = {$sanitizedPost['previousImageSetMain']}");
+        }
+        $updateProductBuilder = $this->db->table('tbl_products');
+        $data = [
+            'category_id' => $sanitizedPost['category_id'],
+            'brand_id' => $sanitizedPost['brand_id'],
+            'name' => $sanitizedPost['name'],
+            'description' => $sanitizedPost['description'],
+            'price' => $sanitizedPost['price'],
+            'updated_at' => date("Y-m-d H:i:s"),
+        ];
+        $updateProductBuilder->where('product_id', $sanitizedPost['product_id']);
+        $updateProductBuilder->update($data);
+        return $this->db->affectedRows();
     }
 
     public function add_product(array $posts, array $images): array
