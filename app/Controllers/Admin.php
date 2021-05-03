@@ -93,35 +93,6 @@ class Admin extends BaseController
         }
         return $isFormValid;
     }
-    protected function validatePostWithImage(array $rules, array $messages, array $post, string $proxy = ''): bool
-    {
-        $imageRules = [
-            'imageFiles' => [
-                'uploaded[imageFiles]',
-                'mime_in[imageFiles,image/jpg,image/jpeg,image/png]',
-                'max_size[imageFiles,2024]',
-            ]
-        ];
-        $imageMessage = [
-            'imageFiles' => [
-                'uploaded' => 'Product image is required',
-                'mime_in' => 'Invalid file image type',
-                'max_size' => 'Image max files size is 2MB'
-            ]
-        ];
-
-        $isFormValid = $this->validate(array_merge($rules, $imageRules), array_merge($messages, $imageMessage));
-        foreach ($this->validator->getErrors() as $name => $errors) {
-            $this->session->setFlashdata($proxy.'_error_'.$name, $errors);
-        }
-        if (count($this->validator->getErrors())) {
-            foreach ($post as $name => $_) {
-                $this->session->setFlashdata($proxy.'_value_'.$name, $post[$name]);
-            }
-        }
-        return $isFormValid;
-    }
-
 
 
     public function index()
@@ -134,14 +105,6 @@ class Admin extends BaseController
     
     public function products()
     {
-
-        // echo '<pre>';
-        // $q = json_decode(stripslashes('[{\"imageName\":\"1619952297_cba1dd45bafd2dbe37b6.jpg\",\"id\":\"66\"},{\"imageName\":\"1619952297_07ee6eb92f78daaa2680.jpg\",\"id\":\"65\"}]'));
-        // foreach($q as $s) {
-        //     unset($s->imageName);
-        // }
-        // var_dump(array_values($q));
-        // exit;
         if (!$this->utilities->isUserLogin('admin')) {
             return redirect()->to('/admin');
         }
@@ -163,7 +126,6 @@ class Admin extends BaseController
             } else {
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
                     if ($this->requests->getPost('isProductUpdate')) {
-                        $data['data'] = $this->requests->getPost();
                         $imageContainer = [];
                         if($this->requests->getFiles()) {
                             $imageContainer = $this->upload_images($this->requests->getFiles());
@@ -171,15 +133,28 @@ class Admin extends BaseController
                         $imageToBeDeleted = [];
                         if($this->requests->getPost('imageToBeDeleted')) {
                             $imageToBeDeleted = json_decode(stripslashes($this->requests->getPost('imageToBeDeleted')));
+                            foreach($imageToBeDeleted as $image) {
+                                unlink(ROOTPATH."public/assets/product_uploads/{$image->imageName}");
+                            }
                             $data['imageToBeDeleted'] = $imageToBeDeleted;
                         }
                         $success = $this->ProductsModel->update_product($this->requests->getPost(), $imageContainer, $imageToBeDeleted);
-                        $data['data'] = $success;
+                        $data['data'] = [
+                            'product' => $success[0],
+                            'isProductUpdated' => true,
+                            'error' => $success == 'error' ? true : false,
+                            'dump' => $this->requests->getPost()
+                        ];
                         echo json_encode($data);
                     } else {
                         $imageContainer = $this->upload_images($this->requests->getFiles());
                         $success = $this->ProductsModel->add_product($this->requests->getPost(), $imageContainer);
-                        $data['data'] = $success ? ['success' => true, 'product' => $success[0]] : ['success' => false];
+                        $data['data'] = [
+                            'isProductAdded' => $success ? true : false,
+                            'error' => $success == 'error' ? true : false,
+                            'product' => $success[0]
+                        ];
+                        $data['imagefiles'] = $this->requests->getFiles();
                         $data['productImages'] = $imageContainer;
                         echo json_encode($data);
                     }
@@ -192,18 +167,18 @@ class Admin extends BaseController
     {
         $imageContainer = [];
         $imageFiles = $images;
-        // $imageFiles = $this->requests->getFiles();
-        // var_dump($imageFiles);
+
         foreach ($imageFiles['imageFiles'] as $key => $file) {
             if ($file->isValid() && !$file->hasMoved()) {
                 // Get file name and extension
                 $newName = $file->getRandomName();
                 $file->move(ROOTPATH.'public/assets/product_uploads', $newName);
-                if ($this->requests->getPost('setMainImageIndex') == $key) {
+                if ($this->requests->getPost('setMainImageIndex') == $key && $this->requests->getPost('setMainImageIndex') != null) {
                     $imageContainer[] = ['image' => $newName, 'status' => 1];
                 } else {
                     $imageContainer[] = ['image' => $newName, 'status' => 0];
                 }
+
             } else {
                 $data['message'] = 'File not uploaded.';
             }

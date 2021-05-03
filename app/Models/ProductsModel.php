@@ -59,7 +59,7 @@ class ProductsModel extends Model
 
     }
 
-    public function update_product(array $posts, array $images = [], array $imageToBeDeleted): int {
+    public function update_product(array $posts, array $images = [], array $imageToBeDeleted): array {
         unset($posts['imageToBeDeleted']);
         $sanitizedPost = $this->sanitizing($posts);
         if($imageToBeDeleted) {
@@ -71,7 +71,12 @@ class ProductsModel extends Model
             $this->db->query($sql, [$imageId]);
             $this->db->affectedRows();
         }
-        if($images || @$sanitizedPost['setMainImageIndex']) {
+        if($images || @$sanitizedPost['setMainImageIndex'] != null) {
+            if($sanitizedPost['setMainImageIndex'] != null) {
+                $sql = "UPDATE tbl_product_images SET status = 0 WHERE product_id = ?";
+                $this->db->query($sql, [$sanitizedPost['product_id']]);
+                $this->db->affectedRows();
+            }
             foreach ($images as $image) {
                 $imagesWithMainSet[] = ['product_id' => $sanitizedPost['product_id'], 'image' => $image['image'], 'status' => $image['status']];
             }
@@ -81,8 +86,6 @@ class ProductsModel extends Model
             $sql = "UPDATE tbl_product_images SET status = IF(image_id = ?, 1, 0) WHERE product_id = ?";
             $this->db->query($sql, [$sanitizedPost['previousImageSetMain'], $sanitizedPost['product_id']]);
             $this->db->affectedRows();
-            // $updateProductImagesBuilder = $this->db->table('tbl_product_images');   
-            // $updateProductImagesBuilder->update(['status' => 1], "image_id = {$sanitizedPost['previousImageSetMain']}");
         }
         $updateProductBuilder = $this->db->table('tbl_products');
         $data = [
@@ -95,7 +98,11 @@ class ProductsModel extends Model
         ];
         $updateProductBuilder->where('product_id', $sanitizedPost['product_id']);
         $updateProductBuilder->update($data);
-        return $this->db->affectedRows();
+        if($this->db->affectedRows()) {
+            return $this->get_products($sanitizedPost['product_id']);
+        } else {
+            return [];
+        }
     }
 
     public function add_product(array $posts, array $images): array

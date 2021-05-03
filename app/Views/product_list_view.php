@@ -24,7 +24,7 @@
                     </thead>
                     <tbody id="productsTbody">
                         <?php foreach($products as $product): ?>
-                            <tr>
+                            <tr id="product_<?= $product->product_id ?>">
                                 <td><img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->name ?>"></td>
                                 <td><?= $product->product_id ?></td>
                                 <td><?= $product->name ?></td>   
@@ -270,12 +270,14 @@
                 });
                 if(isProductUpdate && !$(this).attr('data-image-set')) {
                     setMainImageIndex = $(this).attr('data-count-image');
-                    addProductFormData.append('previousImageSetMain', setMainImageIndex);    
+                    addProductFormData.append('previousImageSetMain', setMainImageIndex);   
+                    console.log(21); 
                 } else {
                     /**
                      * Set the index of the main images
                      * then append setMainImageIndex to the form data
                      */
+                    console.log(2223131);
                     setMainImageIndex = index;
                     addProductFormData.append('setMainImageIndex', setMainImageIndex);
                 }
@@ -342,11 +344,10 @@
                         /**
                          * Refreshing the token
                          */
-
                         token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
                         tokenName = e.token.name;
                         tokenValue = e.token.value;
-                        if(e.data.success) {
+                        if(e.data.isProductAdded) {
                             $('#imageLists').html('');
                             $('.formInput').each(function() {
                                 $(this).val('');
@@ -372,6 +373,32 @@
                             $('.closeModal').click();
                             unsetLoading();
                             alertMessage('Product has been added', 'alertSuccess'); // --> message if there are somethings wrong in validations
+                        }
+                        if(e.data.isProductUpdated) {
+                            console.log(e);
+                            $(`#product_${e.data.product.product_id}`).replaceWith(`
+                                <td><img src="/assets/product_uploads/${e.data.product.image}" alt="${e.data.name}"></td>
+                                <td>${e.data.product.product_id}</td>
+                                <td>${e.data.product.name}</td>   
+                                <td>${e.data.product.stock_quantity ? e.data.product.stock_quantity : 0}</td>
+                                <td>${e.data.product.stock_sold ? e.data.product.stock_sold : 0}</td>
+                                <td>
+                                    <div class="productTableAction">
+                                        <button class="btn hover editProduct" data-id="${e.data.product.product_id}"><span class="far fa-edit"></span></button>
+                                            <button class="btn hover-danger" data-id="${e.data.product.product_id}"><span class="far fa-trash"></span></button>
+                                    </div>
+                                </td>
+                            `);
+                            $('.closeModal').click();
+                            unsetLoading();
+                            alertMessage('Product has been updated', 'alertSuccess');
+                            return false;
+                        }
+                        if(e.data.error) {
+                            $('.closeModal').click();
+                            unsetLoading();
+                            alertMessage('Somethine went wrong', 'alertDanger');
+                            return false;
                         }
                     })
                 }
@@ -660,6 +687,7 @@
             });
 
             $(document).on('click', '.editProduct', function() {
+                resetFormData();
                 $('#addProduct').val('Update');
                 $('.formInput').each(function() {
                     revertField($(this));
@@ -749,12 +777,19 @@
 
             $(document).on('click', '.closeModal', function() {
                 $('.adminProduct__modal').hide(function(){
-                    isProductUpdate = false;
                     $('body').removeClass("modalOpen");
                 });
-                
             }); 
             $(document).on('click', '#addNewProductBtn', function() {
+                resetFormData();
+                $('#formModalHeading').html('Add new product');
+                $('#addProduct').val('Add');
+                $('.adminProduct__modal').show(function(){
+                    $('body').addClass("modalOpen");
+                });
+            });
+
+            function resetFormData() {
                 $('#name').val('');
                 $('#description').val('');
                 $('#price').val('');
@@ -762,13 +797,25 @@
                 $('#brand').val('');
                 $('#image').val('');
                 $('#imageLists').html('');
-                $('#formModalHeading').html('Add new product');
-                $('#addProduct').val('Add');
+                addProductFormData.delete('setMainImageIndex');
+                addProductFormData.delete('isProductUpdate');
+                addProductFormData.delete('name');
+                addProductFormData.delete('description');
+                addProductFormData.delete('price');
+                addProductFormData.delete('brand');
+                addProductFormData.delete('categories');
+                addProductFormData.delete('imageFiles[]');
+                addProductFormData.delete('imageFiles');
+                errorImage.length = 0;
+                errorInput.length = 0;
+                imageContainer.length = 0;
+                updateImageToAddContainer.length = 0;
+                imageDeletedContainer.length = 0;
+                setMainImageIndex = '';
                 isProductUpdate = false;
-                $('.adminProduct__modal').show(function(){
-                    $('body').addClass("modalOpen");
-                });
-            });
+                imageProductCount = 0;
+                console.log('qweasdasd');
+            }
         });
     </script>
 <?=$this->endSection()?>
