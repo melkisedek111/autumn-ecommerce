@@ -5,13 +5,13 @@
         <h1>Orders</h1>
         <div class="adminProduct__productTable">
             <div class="adminProduct__productTable--search">
-                <input type="text" class="form-control" placeholder="Search product here">
+                <input type="text" id="searchProduct" class="form-control" placeholder="Search product here">
                 <div>
                     <buttton class="btn hover" id="addNewProductBtn">Add new product</buttton>
                 </div>
             </div>
             <div class="adminProduct__productTable--tableContainer">
-                <table class="tbl">
+                <table class="tbl" id="productTable">
                     <thead>
                         <tr>
                             <th width="25%">Picture</th>
@@ -23,7 +23,7 @@
                         </tr>
                     </thead>
                     <tbody id="productsTbody">
-                        <?php foreach($products as $product): ?>
+                        <!-- <?php foreach($products as $product): ?>
                             <tr id="product_<?= $product->product_id ?>">
                                 <td><img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->name ?>"></td>
                                 <td><?= $product->product_id ?></td>
@@ -37,7 +37,7 @@
                                     </div>
                                 </td>
                             </tr>
-                        <?php endforeach; ?>
+                        <?php endforeach; ?> -->
                     </tbody>
                 </table>
                 <div class="tablePagination">
@@ -76,8 +76,8 @@
                         <select name="category_id" id="categories"  class="form-control parentSelect formInput <?= session()->has('product_error_category_id') ? "error" : ""; ?>" data-required-message="Product category is required!">
                             <?php if(session()->has('product_value_category_id')): ?>
                                 <?php foreach($categories as $category):?>
-                                    <?php if($category['category_id'] == session()->get('product_value_category_id')): ?>
-                                        <option value="<?= $category['category_id'] ?>" selected>"<?= $category['category_name'] ?></option>
+                                    <?php if($category->category_id == session()->get('product_value_category_id')): ?>
+                                        <option value="<?= $category->category_id ?>" selected>"<?= $category->category_name ?></option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -106,8 +106,8 @@
                         <select name="brand_id" id="brand" class="form-control formInput <?= session()->has('product_error_brand_id') ? "error" : ""; ?> parentSelect" data-required-message="Product brand is required!">
                             <?php if(session()->has('product_value_brand_id')): ?>
                                 <?php foreach($brands as $brand):?>
-                                    <?php if($brand['brand_id'] == session()->get('product_value_brand_id')): ?>
-                                        <option value="<?= $brand['brand_id'] ?>" selected>"<?= $brand['brand_name'] ?></option>
+                                    <?php if($brand->brand_id == session()->get('product_value_brand_id')): ?>
+                                        <option value="<?= $brand->brand_id ?>" selected>"<?= $brand->brand_name ?></option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             <?php endif; ?>
@@ -161,7 +161,8 @@
                     $('body').addClass("modalOpen");
                 });
             <?php endif; ?>
-            
+
+
             const errorImage = [];
             const errorInput = [];
             const addProductFormData = new FormData();
@@ -172,6 +173,7 @@
             let setMainImageIndex = '';
             let isProductUpdate = false;
             let imageProductCount = 0;
+            let product_rows = 0;
             /**
              * PRICE INPUT is only number will be input when keypress
              */
@@ -505,7 +507,7 @@
                                      */
                                     if(e.data.category) {
                                         $('.categoryOptions').prepend(
-                                            `<div class="selectOption" data-name="category" data-id="${e.data.category.category_id}">
+                                            `<div class="selectOption" data-name="category" data-id="${e.data.category.id}">
                                                 <h3 class="selectValue" data-select-value="${e.data.category.category_name}" data-name="category" data-id="${e.data.category.category_id}">${e.data.category.category_name}</h3>
                                                 <div class="selectOptionButtons">
                                                     <span class="far fa-edit editSelect" data-name="category" data-id="${e.data.category.category_id}"></span>
@@ -516,7 +518,7 @@
                                     }
                                     if(e.data.brand) {
                                         $('.brandOptions').prepend(
-                                            `<div class="selectOption" data-name="brand" data-id="${e.data.brand.brand_id}">
+                                            `<div class="selectOption" data-name="brand" data-id="${e.data.brand.id}">
                                                 <h3 class="selectValue" data-select-value="${e.data.brand.brand_name}" data-name="brand" data-id="${e.data.brand.brand_id}">${e.data.brand.brand_name}</h3>
                                                 <div class="selectOptionButtons">
                                                     <span class="far fa-edit editSelect" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
@@ -714,8 +716,6 @@
                 const response = ajax({product_id: sanitizeHtml(id)}, '/admin/get_product');
                 response.done(e => {
                     refreshToken(e);
-
-                    console.log(e);
                     isProductUpdate = true;
                     imageProductCount = e.data.images.length;
                     addProductFormData.append('product_id', e.data.details.product_id);
@@ -789,7 +789,12 @@
                 }
             });
 
-
+            $(document).on('keyup', '#searchProduct', function() {
+                var value = $(this).val().toLowerCase();
+                $("#productTable tr").filter(function() {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+            })
 
             $(document).on('click', '.closeModal', function() {
                 $('.adminProduct__modal').hide(function(){
@@ -805,7 +810,60 @@
                 });
             });
 
+            function getNumberPages() {
+                const data = {
+                    page_number: (1 - 1) * 5 
+                };
+                const response = ajax(data, '/admin/filter_products');
+                response.done(e => {
+                    refreshToken(e);
+                    const totalProductRows = e.total_rows.product_rows;
+                    setTableData(e.products);
+                    setPagination(totalProductRows);
+                    
+                    $(document).on('click', '#paginate', function(e){
+                        e.preventDefault();
+                        const pageLinkDisabled = $(this).attr('disabled');
+                        if(!pageLinkDisabled) {
+                            const pageNumber = $(this).attr('page-number') ? $(this).attr('page-number') : 1;
+                            setOffset = pageNumber;
+                            const data = {
+                                page_number: (sanitizeHtml(pageNumber) - 1) * 5,
+                            };
+                            setPagination(totalProductRows, parseInt(pageNumber));
+                            const response = ajax(data, '/admin/filter_products');
+                            response.done(e => {
+                                refreshToken(e);
+                                setTableData(e.products);
+                            });
+                        }
+                    });
+                });
+            }
 
+            
+
+            function setTableData(data) {
+                let tbodyTable = ''
+                for(const product of data) {
+                    tbodyTable += `<tr id="product_${product.product_id}">
+                            <td><img src="/assets/product_uploads/${product.image}" alt="${product.name}"></td>
+                            <td>${product.product_id}</td>
+                            <td>${product.name}</td>   
+                            <td>${product.stock_quantity ? product.stock_quantity : 0}</td>
+                            <td>${product.stock_sold ? product.stock_sold : 0}</td>
+                            <td>
+                                <div class="productTableAction">
+                                    <button class="btn hover editProduct" data-id="${product.product_id}"><span class="far fa-edit"></span></button>
+                                        <button class="btn hover-danger deleteProduct" data-id="${product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                }
+                $('#productsTbody').html(tbodyTable);
+            }
+
+            
 
             function resetFormData() {
                 $('#name').val('');
@@ -834,6 +892,8 @@
                 imageProductCount = 0;
                 console.log('qweasdasd');
             }
+
+            getNumberPages();   
         });
     </script>
 <?=$this->endSection()?>

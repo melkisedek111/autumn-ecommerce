@@ -79,7 +79,7 @@
         <a href="/home" class="nav__icon">AUTUMN</a>
         <div class="nav__navLinks">
             <a href="/home">Home</a>
-            <a href="/shop.html">Shop</a>
+            <a href="/shop">Shop</a>
             <a href="/main">Orders</a>
             <a href="/products">Products</a>
             <a href="/collections">Collections</a>
@@ -168,6 +168,69 @@
                     </div>
                 </div>`);
             $('body').addClass("modalOpen");
+        }
+        function setPagination(totalRecords, pageNumber = 1) {
+            const pageNumberContainer = document.createElement('div');
+            pageNumberContainer.setAttribute('class', 'pageNumbers');
+            $('.tablePagination').html(pageNumberContainer);
+            const  totalNumberPages = totalRecords % 5 === 1 ? Math.round(totalRecords / 5) + 1 : Math.round(totalRecords / 5);
+            const secondLast = totalNumberPages - 1;
+            let offset = (pageNumber - 1) * 5;
+            let nextPage = pageNumber + 1;
+            let previousPage = pageNumber - 1;
+            let adjacents = 2;
+            $('.pageNumbers').append(`<a id="paginate" href="#" ${pageNumber <= 1 ? 'disabled="1"' : ""} page-number="1">First Page</a>`);
+            $('.pageNumbers').append(`<a id="paginate" href="#" page-number="${previousPage}">Previous</a>`);
+            if(totalNumberPages <= 10) {
+                for(let countPages = 1; countPages <= totalNumberPages; countPages++) {
+                    if(countPages == pageNumber) {
+                        $('.pageNumbers').append(`<a href="#" class="active" id="paginate">${countPages}</a>`)
+                    } else {
+                        $('.pageNumbers').append(`<a href="#" page-number="${countPages}" id="paginate">${countPages}</a>`)
+                    }
+                }
+            } else if(totalNumberPages > 10) {
+                if(pageNumber <= 4) {
+                    for(let countPages = 1; countPages < 8; countPages++) {
+                        if(countPages == pageNumber) {
+                            $('.pageNumbers').append(`<a href="#" class="active"  id="paginate">${countPages}</a>`);
+                        } else {
+                            $('.pageNumbers').append(`<a href="#" page-number="${countPages}" id="paginate">${countPages}</a>`);
+                        }
+                    }
+                    $('.pageNumbers').append(`<a href="#">...</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="${secondLast}">${secondLast}</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="${totalNumberPages}">${totalNumberPages}</a>`);
+                } else if (pageNumber > 4 && pageNumber < totalNumberPages - 4) {
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="1">1</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="2">2</a>`);
+                    $('.pageNumbers').append(`<a href="#">...</a>`);
+                    for(let countPages = pageNumber - adjacents; countPages <= pageNumber + adjacents; countPages++) {
+                        if(countPages == pageNumber) {
+                            $('.pageNumbers').append(`<a href="#" class="active" id="paginate">${countPages}</a>`);
+                        } else {
+                            $('.pageNumbers').append(`<a href="#" page-number="${countPages}" id="paginate">${countPages}</a>`);
+                        }
+                    }
+                    $('.pageNumbers').append(`<a href="#">...</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="${secondLast}">${secondLast}</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="${totalNumberPages}">${totalNumberPages}</a>`);
+                } else {
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="1" >1</a>`);
+                    $('.pageNumbers').append(`<a id="paginate" href="#" page-number="2">2</a>`);
+                    $('.pageNumbers').append(`<a href="#">...</a>`);
+
+                    for(let countPages = totalNumberPages - 6; countPages <= totalNumberPages; countPages++) {
+                        if(countPages == pageNumber) {
+                            $('.pageNumbers').append(`<a href="#" class="active" id="paginate">${countPages}</a>`);
+                        } else {
+                            $('.pageNumbers').append(`<a href="#" page-number="${countPages}" id="paginate">${countPages}</a>`);
+                        }
+                    }
+                }
+            } 
+            $('.pageNumbers').append(`<a id="paginate" href="#" ${pageNumber >= totalNumberPages ? 'disabled="1"' : ""} ${pageNumber < totalNumberPages ? `page-number="${nextPage}"` : ""}>Next</a>`);
+            $('.pageNumbers').append(`${pageNumber < totalNumberPages ? `<a id="paginate" href="#" page-number="${totalNumberPages}">Last Page</a>` : ""}`);
         }
         function removeModalDelete() {
             $('.modal').remove();

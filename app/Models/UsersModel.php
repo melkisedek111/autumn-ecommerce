@@ -26,7 +26,7 @@ class UsersModel extends Model
 
     public function check_email(array $email) {
         $sanitizedPost = $this->sanitizing($email);
-        $builder = $this->db->table('tbl_users');
+        $builder = $this->db->table('users');
         $builder->select('email');
         $query = $builder->getWhere(['email' => $sanitizedPost['email']]);
         return $query->getResult();
@@ -41,7 +41,7 @@ class UsersModel extends Model
         $salt = bin2hex(openssl_random_pseudo_bytes(22)); // hashing for password
         $encrypted_password = md5($sanitizedPost['password']. '' .$salt);
         $pQuery = $this->db->prepare(function ($db) {
-            return $db->table('tbl_users')
+            return $db->table('users')
               ->insert([
                    'email' => '1',
                    'encrypted_password' => '2',
@@ -58,8 +58,8 @@ class UsersModel extends Model
     public function login_user(array $posts) {
         unset($posts['login']);
         $sanitizedPost = $this->sanitizing($posts);
-        $builder = $this->db->table('tbl_users');
-        $builder->select('user_id, first_name, last_name, email, encrypted_password, salt, image, user_type');
+        $builder = $this->db->table('users');
+        $builder->select('users.id as user_id, first_name, last_name, email, encrypted_password, salt, image, user_type');
         $query = $builder->getWhere(['email' => $sanitizedPost['email']]);
         $user = $query->getRow();
         $login_encrypted_password = md5("{$sanitizedPost['password']}{$user->salt}");

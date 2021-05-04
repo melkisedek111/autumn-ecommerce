@@ -40,6 +40,7 @@ $routes->get('/logout', 'User::logout');
 $routes->get('/admin', 'User::admin_login');
 $routes->get('/main', 'Admin::index');
 $routes->get('/products', 'Admin::products');
+$routes->get('/shop', 'Shop::index');
 
 
 

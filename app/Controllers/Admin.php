@@ -32,6 +32,7 @@ class Admin extends BaseController
                 'price' => 'required|decimal',
                 'category_name' => 'required|min_length[2]|max_length[250]',
                 'brand_name' => 'required|min_length[2]|max_length[250]',
+                'page_number' => 'required|numeric',
         ];
         $this->messages = [
             'name' => [
@@ -73,6 +74,10 @@ class Admin extends BaseController
                 'min_length' => 'Category name should at least 2 characters',
                 'max_length' => 'Category name should be maximum 250 characters'
             ],
+            'page_number' => [
+                'required' => 'Page number is required!',
+                'numeric' => 'Product should be numeric',
+            ],
         ];
         if ($this->requests->getPost()) {
             $this->rulesAndMessages = $this->utilities->getRules($this->rules, $this->messages, $this->requests->getPost());
@@ -107,8 +112,8 @@ class Admin extends BaseController
         if (!$this->utilities->isUserLogin('admin')) {
             return redirect()->to('/admin');
         }
-        $categories = $this->ProductsModel->get_categories_brand('tbl_categories', 'category_id, category_name', 'created_at DESC');
-        $brands = $this->ProductsModel->get_categories_brand('tbl_brands', 'brand_id, brand_name', 'created_at DESC');
+        $categories = $this->ProductsModel->get_categories_brand('categories', 'id as category_id, category_name', 'created_at DESC');
+        $brands = $this->ProductsModel->get_categories_brand('brands', 'id as brand_id, brand_name', 'created_at DESC');
         $products = $this->ProductsModel->get_products();
 
         return view('product_list_view', ['categories' => $categories, 'brands' => $brands, 'products' => $products]);
@@ -116,6 +121,9 @@ class Admin extends BaseController
 
     public function add_product_process()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "product")) {
@@ -163,6 +171,9 @@ class Admin extends BaseController
     }
 
     public function delete_product_process() {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "product")) {
@@ -212,6 +223,9 @@ class Admin extends BaseController
 
     public function update_process()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
@@ -221,7 +235,7 @@ class Admin extends BaseController
             } else {
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
                     if ($this->requests->getPost('category_name')) {
-                        $success = $this->ProductsModel->update_category_brand('tbl_categories', $this->requests->getPost(), 'category');
+                        $success = $this->ProductsModel->update_category_brand('categories', $this->requests->getPost(), 'category');
                         $data['data'] = [
                             'exists' => @$success['category_exists'] ? 'Category name already exists' : false,
                             'updated' => count($success) ? 'Category has been updated' : false,
@@ -231,7 +245,7 @@ class Admin extends BaseController
                         echo json_encode($data);
                     }
                     if ($this->requests->getPost('brand_name')) {
-                        $success = $this->ProductsModel->update_category_brand('tbl_brands', $this->requests->getPost(), 'brand');
+                        $success = $this->ProductsModel->update_category_brand('brands', $this->requests->getPost(), 'brand');
                         $data['data'] = [
                             'exists' => @$success['brand_exists'] ? 'Brand name already exists' : false,
                             'updated' => count($success) ? 'Brand has been updated' : false,
@@ -246,6 +260,9 @@ class Admin extends BaseController
     }
     public function add_category_brand()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
@@ -280,6 +297,9 @@ class Admin extends BaseController
     }
     public function delete_process()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
@@ -289,7 +309,7 @@ class Admin extends BaseController
             } else {
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
                     $indicator = $this->requests->getPost('indicator');
-                    $table = $indicator == 'category' ? 'tbl_categories' : ($indicator == 'brand' ? 'tbl_brands' : '');
+                    $table = $indicator == 'category' ? 'categories' : ($indicator == 'brand' ? 'brands' : '');
                     $success = $this->ProductsModel->delete_category_brand($table, $this->requests->getPost(), $indicator);
                     $data['data'] = [
                         'deleted' => $success ? ucwords($indicator) . " has been deleted" : false,
@@ -303,8 +323,32 @@ class Admin extends BaseController
         }
     }
 
+    public function filter_products() {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $data['products'] = $this->ProductsModel->get_filter_products($this->requests->getPost());
+                    $data['q'] = $this->requests->getPost();
+                    $data['total_rows'] = $this->ProductsModel->get_total_product_rows();
+                    echo json_encode($data);
+                }
+            }
+        }
+    }
+
     public function get_product()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost())) {
@@ -320,7 +364,17 @@ class Admin extends BaseController
         }
     }
 
-    public function get_total_row_products()
+    public function get_total_product_rows()
     {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/admin');
+        }
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                $data['data'] = $this->ProductsModel->get_total_product_rows();
+                echo json_encode($data);
+            }
+        }
     }
 }
