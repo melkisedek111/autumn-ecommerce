@@ -14,6 +14,11 @@
         const token = {<?= csrf_token(); ?>: "<?= csrf_hash(); ?>"};
         let tokenName = "<?= csrf_token(); ?>";
         let tokenValue = "<?= csrf_hash(); ?>";
+        function refreshToken(e) {
+            token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
+            tokenName = e.token.name;
+            tokenValue = e.token.value;
+        }
         function ajax(ajaxData, url_root){
             if(ajaxData instanceof FormData) {
                 return $.ajax({

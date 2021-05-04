@@ -33,7 +33,7 @@
                                 <td>
                                     <div class="productTableAction">
                                         <button class="btn hover editProduct" data-id="<?= $product->product_id ?>"><span class="far fa-edit"></span></button>
-                                            <button class="btn hover-danger" data-id="<?= $product->product_id ?>"><span class="far fa-trash"></span></button>
+                                        <button class="btn hover-danger deleteProduct" data-id="<?= $product->product_id ?>" data-name="product"><span class="far fa-trash"></span></button>
                                     </div>
                                 </td>
                             </tr>
@@ -271,13 +271,11 @@
                 if(isProductUpdate && !$(this).attr('data-image-set')) {
                     setMainImageIndex = $(this).attr('data-count-image');
                     addProductFormData.append('previousImageSetMain', setMainImageIndex);   
-                    console.log(21); 
                 } else {
                     /**
                      * Set the index of the main images
                      * then append setMainImageIndex to the form data
                      */
-                    console.log(2223131);
                     setMainImageIndex = index;
                     addProductFormData.append('setMainImageIndex', setMainImageIndex);
                 }
@@ -344,9 +342,7 @@
                         /**
                          * Refreshing the token
                          */
-                        token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
-                        tokenName = e.token.name;
-                        tokenValue = e.token.value;
+                        refreshToken(e);
                         if(e.data.isProductAdded) {
                             $('#imageLists').html('');
                             $('.formInput').each(function() {
@@ -356,7 +352,7 @@
                              * When adding product is successful then prepend to table tbody
                              */
                             $('#productsTbody').prepend(`
-                                <tr>
+                                <tr id="product_${e.data.product.product_id}">
                                     <td><img src="/assets/product_uploads/${e.data.product.image}" alt="${e.data.name}"></td>
                                     <td>${e.data.product.product_id}</td>
                                     <td>${e.data.product.name}</td>   
@@ -365,7 +361,7 @@
                                     <td>
                                         <div class="productTableAction">
                                             <button class="btn hover editProduct" data-id="${e.data.product.product_id}"><span class="far fa-edit"></span></button>
-                                                <button class="btn hover-danger" data-id="${e.data.product.product_id}"><span class="far fa-trash"></span></button>
+                                                <button class="btn hover-danger deleteProduct" data-id="${e.data.product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -385,7 +381,7 @@
                                 <td>
                                     <div class="productTableAction">
                                         <button class="btn hover editProduct" data-id="${e.data.product.product_id}"><span class="far fa-edit"></span></button>
-                                            <button class="btn hover-danger" data-id="${e.data.product.product_id}"><span class="far fa-trash"></span></button>
+                                            <button class="btn hover-danger deleteProduct" data-id="${e.data.product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
                                     </div>
                                 </td>
                             `);
@@ -491,9 +487,8 @@
                         const trimedName = name.charAt(0).toUpperCase() + name.slice(1);
                         const response = ajax({[dataName]: sanitizeHtml(name)}, '/admin/add_category_brand');
                         response.done(e => {
-                            token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
-                            tokenName = e.token.name;
-                            tokenValue = e.token.value;
+                            refreshToken(e);
+
                             if(e.internalValidationError) {
                                 alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
                             } else {
@@ -553,7 +548,8 @@
              * then show modal
              */
 
-            $(document).on('click', '.deleteCategory, .deleteBrand', function() {
+ 
+            $(document).on('click', '.deleteCategory, .deleteBrand, .deleteProduct', function() {
                 const id = $(this).attr('data-id');
                 const indicator = $(this).attr('data-name');
                 let messageHead = '';
@@ -561,10 +557,12 @@
                     messageHead = 'DELETE CATEGORY';
                 } else if (indicator == 'brand') {
                     messageHead = 'DELETE BRAND';
+                } else if (indicator == 'product') {
+                    messageHead = 'DELETE PRODUCT';
                 }
                 deleteModal(messageHead, id, indicator);
             });
-
+            
             /**
              * deleteModalBtn - button from the modal, since modal is executed once, the operation is global whenever deleteModalBtn is being called then do some stuff on the event e.g  $(document).on('click', '#deleteModalBtn', function() { do something here });
              * get the required attributes
@@ -574,41 +572,61 @@
                 loading();
                 const value = $(this).attr('data-delete-modal-id');
                 const indicator = $(this).attr('data-delete-indicator');
-                const response = ajax({[`${indicator}_id`]: sanitizeHtml(value), indicator: sanitizeHtml(indicator)}, '/admin/delete_process');
-                response.done(e => {
-                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
-                    tokenName = e.token.name;
-                    tokenValue = e.token.value;
-                    if(e.internalValidationError) {
-                        alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
-                    } else {
-                        if(e.data.deleted) {
-                            /**
-                             * if deleted is success
-                             * then delete the selected option from the options
-                             */
-                            setTimeout(() => {
-                                $('.selectOption').each(function(index, element) {
-                                    const name = $(element).attr('data-name');
-                                    const id = $(element).attr('data-id');
-                                    if(name == e.data.indicator && id == e.data.id) {
-                                        $(element).parent().parent().find('select').val('');
-                                        $(element).remove();
-                                    };
-                                });
+                if(indicator == 'category' || indicator == 'brand') {
+                    const response = ajax({[`${indicator}_id`]: sanitizeHtml(value), indicator: sanitizeHtml(indicator)}, '/admin/delete_process');
+                    response.done(e => {
+                        refreshToken(e);
+
+                        if(e.internalValidationError) {
+                            alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                        } else {
+                            if(e.data.deleted) {
+                                /**
+                                 * if deleted is success
+                                 * then delete the selected option from the options
+                                 */
+                                setTimeout(() => {
+                                    $('.selectOption').each(function(index, element) {
+                                        const name = $(element).attr('data-name');
+                                        const id = $(element).attr('data-id');
+                                        if(name == e.data.indicator && id == e.data.id) {
+                                            $(element).parent().parent().find('select').val('');
+                                            $(element).remove();
+                                        };
+                                    });
+                                    removeModalDelete();
+                                    unsetLoading();
+                                    alertMessage(e.data.deleted, 'alertDanger');
+                                    return false;
+                                }, 1500);
+                            }
+                            if(e.data.error) {
+                                alertMessage('Somethine went wrong', 'alertDanger');
+                                return false;
+                            }
+                        }
+                    });
+                } else if (indicator == 'product') {
+                    const response = ajax({'product_id': sanitizeHtml(value), indicator: sanitizeHtml(indicator)}, '/admin/delete_product_process');
+                    response.done(e => {
+                        refreshToken(e);
+
+                        if(e.internalValidationError) {
+                            alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                        } else {
+                            if(e.data.isProductDeleted) {
+                                $(`#product_${e.data.product_id}`).remove();
                                 removeModalDelete();
                                 unsetLoading();
-                                alertMessage(e.data.deleted, 'alertDanger');
+                                alertMessage(e.data.productDeleteMessage, 'alertSuccess');
+                            }
+                            if(e.data.error) {
+                                alertMessage('Somethine went wrong', 'alertDanger');
                                 return false;
-                            }, 1500);
+                            }
                         }
-                        if(e.data.error) {
-                            alertMessage('Somethine went wrong', 'alertDanger');
-                            return false;
-                        }
-                    }
-                })
-
+                    });
+                }
             });
 
             /**
@@ -638,9 +656,8 @@
                                 `);
                                 const response = ajax({[`${name}_name`]: sanitizeHtml(value), [`${name}_id`]: sanitizeHtml(id)}, '/admin/update_process');
                                 response.done(e => {
-                                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
-                                    tokenName = e.token.name;
-                                    tokenValue = e.token.value;
+                                    refreshToken(e);
+
                                     setTimeout(() => {
                                         $('.loadingSelectOption').remove();
                                         if(e.internalValidationError) {
@@ -696,9 +713,8 @@
                 $('#formModalHeading').html(`Edit product - ID ${id}`);
                 const response = ajax({product_id: sanitizeHtml(id)}, '/admin/get_product');
                 response.done(e => {
-                    token[e.token.name] = e.token.value; // --> refreshin csrf token to make another http request or ajax request
-                    tokenName = e.token.name;
-                    tokenValue = e.token.value;
+                    refreshToken(e);
+
                     console.log(e);
                     isProductUpdate = true;
                     imageProductCount = e.data.images.length;
@@ -788,6 +804,8 @@
                     $('body').addClass("modalOpen");
                 });
             });
+
+
 
             function resetFormData() {
                 $('#name').val('');

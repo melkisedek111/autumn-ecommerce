@@ -54,10 +54,30 @@ class ProductsModel extends Model
         $productImageBuilder->where('product_id', $sanitizedPost['product_id']);
         $images = $productImageBuilder->get();
         $productImages = $images->getResult();
-        
         return ['details' => $productDetails, 'images' => $productImages];
-
     }
+
+
+    public function delete_product(array $posts): array {
+        unset($posts['indicator']);
+        $sanitizedPost = $this->sanitizing($posts);
+        $productImageBuilder = $this->db->table('tbl_product_images');
+        $productImageBuilder->select('image');
+        $productImageBuilder->where('product_id', $sanitizedPost['product_id']);
+        $images = $productImageBuilder->get();
+        $productImages = $images->getResult();
+       
+        $productBuilder = $this->db->table('tbl_products');
+        $productBuilder->where("product_id", $sanitizedPost["product_id"]);
+        $productBuilder->delete();
+        
+        if($productImages && $this->db->affectedRows()) {
+            return $productImages;
+        } else {
+            return [];
+        }
+    }
+
 
     public function update_product(array $posts, array $images = [], array $imageToBeDeleted): array {
         unset($posts['imageToBeDeleted']);

@@ -32,7 +32,6 @@ class Admin extends BaseController
                 'price' => 'required|decimal',
                 'category_name' => 'required|min_length[2]|max_length[250]',
                 'brand_name' => 'required|min_length[2]|max_length[250]',
-                
         ];
         $this->messages = [
             'name' => [
@@ -158,6 +157,31 @@ class Admin extends BaseController
                         $data['productImages'] = $imageContainer;
                         echo json_encode($data);
                     }
+                }
+            }
+        }
+    }
+
+    public function delete_product_process() {
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "product")) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $productDeleted = $this->ProductsModel->delete_product($this->requests->getPost());
+                    foreach($productDeleted as $image) {
+                        unlink(ROOTPATH."public/assets/product_uploads/{$image->image}");
+                    }
+                    $data['data'] = [
+                        'isProductDeleted' => $productDeleted ? true : false,
+                        'error' => $productDeleted == 'error' ? true : false,
+                        'productDeleteMessage' => 'Product has been deleted!',
+                        'product_id' => $this->requests->getPost('product_id')
+                    ];
+                    echo json_encode($data);
                 }
             }
         }
