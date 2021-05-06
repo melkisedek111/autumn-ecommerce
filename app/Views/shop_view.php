@@ -3,6 +3,9 @@
 <?=$this->section("content")?>
 <div class="shop">
     <div class="shop__filter">
+        <div class="shop__search">
+            <input type="text" class="form-control" id="searchProduct" placeholder="Search product">
+        </div>
         <div class="shop__categories">  
             <h2>Categories</h2>
             <a class="<?= $active == "all" ? "active" : '' ?>" href="/shop">
@@ -20,10 +23,10 @@
             <div class="shop__filterBy--price">
                 <h2>Price</h2>
                 <div>
-                    <input type="text" class="form-control" placeholder="min">
-                    <input type="text" class="form-control" placeholder="max">
+                    <input type="text" class="form-control" placeholder="min" id="minPrice">
+                    <input type="text" class="form-control" placeholder="max" id="maxPrice">
                 </div>
-                <small>Range: $50 - $100</small>
+                <small>Range: $<?= $prices->minPrice ?> - $<?= $prices->maxPrice ?></small>
             </div>
             <!-- <div class="shop__filterBy--size">
                 <h2>Size</h2>
@@ -56,8 +59,12 @@
             <h2><span><?= count($products) ?></span> Products Found</h2>
             <div>
                 <h2>Sort By:</h2>
-                <select name="" id="" class="form-control">
-                    <option value="">Descending</option>
+                <select name="sortProducts" id="sortProducts" class="form-control">
+                    <option value="">Sort by</option>
+                    <option value="DESC">Descending</option>
+                    <option value="ASC">Ascending</option>
+                    <option value="max_price">Price (max)</option>
+                    <option value="min_price">Price (min)</option>
                 </select>
             </div>
             <div>
@@ -72,11 +79,11 @@
                 <?php foreach($products as $product): ?>
                     <div class="filterDesignOne">
                         <div class="itemImageContainer">
-                            <a href="">
+                            <a href="/products/show/<?= $product->product_id ?>">
                                 <img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->name ?>">
                             </a>
                             <div class="addToCart">
-                                <h1 class="shopAddToCart">&plus;</h1>
+                                <h1 class="shopAddToCart" data-product-id="<?= $product->product_id ?>">&plus;</h1>
                             </div>
                         </div>
                         <div class="itemDetails">
@@ -88,24 +95,93 @@
             <?php endif; ?>
         </div>
         <div class="tablePagination">
-            <a href="">First Page</a>
-            <a href="">Previous Page</a>
-            <a href="">1</a>
-            <a href="">2</a>
-            <a href="">3</a>
-            <a href="">4</a>
-            <a href="">Next Page</a>
-            <a href="">Last Page</a>
+
         </div>
     </div>
 </div>
 <script>
     $(document).ready(function() {
-        const indicator = "<?= $active; ?>";
+        
+    });
+    const indicator = "<?= $active; ?>";
         // const totalProductRows = "<?= $total_products_row; ?>";
         const indicatorName = "<?= $indicator; ?>";
+        let maxPriceSet = '';
+        let minPriceSet = '';
+        let rowSet = '';
+
+        $(document).on('change', '#sortProducts', function() {
+            console.log(1);
+            const data = {
+                filterBySort: true,
+                // sort: sanitizeHtml($(this).val()),
+                // maxPriceSet: sanitizeHtml(maxPriceSet),
+                // minPriceSet: sanitizeHtml(minPriceSet),
+                // rowSet: sanitizeHtml(rowSet),
+            }
+            const response = ajax(data, '/shop/filter_products');
+            response.done(e => {
+                refreshToken(e);
+                console.log(e);
+            });
+        
+        });
 
 
+        let responsePrice = null;
+        $(document).on('keypress', '#minPrice, #maxPrice', function(evt) {
+            evt = evt ? evt : window.event;
+            var charCode = evt.which ? evt.which : evt.keyCode;
+            if (charCode > 31 && (charCode < 48 || charCode > 57) && (charCode < 45 || charCode > 46)) {
+                return false;
+            }
+            return true;
+        })
+        $(document).on('keyup', '#minPrice, #maxPrice', function(evt) {
+            const minPrice = $('#minPrice').val();
+            const maxPrice = $('#maxPrice').val();
+            if(minPrice == '' || maxPrice == '') {
+                getNumberPages();
+            } else {
+                const data = {
+                    filterByPrice: true,
+                    minPrice: sanitizeHtml(minPrice),
+                    maxPrice: sanitizeHtml(maxPrice)
+                };
+                const execute = function() {
+                    if(responsePrice) responsePrice.abort();
+                    responsePrice = ajax(data, '/shop/filter_products');
+                    responsePrice.done(e => {
+                        refreshToken(e);
+                        maxPriceSet = maxPrice;
+                        minPriceSet = minPrice
+                        setProductView(e.products.products);
+                    }); 
+                }
+                execute();
+            }
+
+        })
+        let responseSearch = null;
+        $(document).on('keyup', '#searchProduct', function() {
+            if($(this).val() === '') {
+                getNumberPages();
+            } else {
+                const data = {
+                    filterByName: true,
+                    name: sanitizeHtml($(this).val()),
+                };
+                const execute = function() {
+                    if(responseSearch) responseSearch.abort();
+                    responseSearch = ajax(data, '/shop/filter_products');
+                    responseSearch.done(e => {
+                        refreshToken(e);
+                        setProductView(e.products.products);
+                    }); 
+                }
+                execute();
+            }
+        });
         function truncate(text, limit) {
             if (text.split(' ').length > limit) {
                 let words = text.split(' ');
@@ -140,10 +216,12 @@
                             indicatorName: indicator == "all" ? '' : sanitizeHtml(indicatorName)
                         };
                         setPagination(totalProductRows, parseInt(pageNumber), 9);
-                        const response = ajax(data, '/admin/filter_products');
+                        const response = ajax(data, '/shop/filter_products');
                         response.done(e => {
                             refreshToken(e);
-                            setTableData(e.products);
+                            rowSet = parseInt(pageNumber);
+                            setProductView(e.products.products);
+
                         });
                     }
                 });
@@ -156,23 +234,46 @@
                 productViewHtml += `
                     <div class="filterDesignOne">
                         <div class="itemImageContainer">
-                            <a href="">
+                            <a href="/products/show/${product.product_id}">
                                 <img src="/assets/product_uploads/${product.image}" alt="${product.product_id}">
                             </a>
                             <div class="addToCart">
-                                <h1 class="shopAddToCart" data-id="${product.product_id}">&plus;</h1>
+                                <h1 class="shopAddToCart" data-product-id="${product.product_id}">&plus;</h1>
                             </div>
                         </div>
                         <div class="itemDetails">
                             <h2>${truncate(product.name, 6)}</h2>
-                            <h3>${product.price}</h3>
+                            <h3>$${product.price}</h3>
                         </div>
                     </div>
                 `
             }
             $('.shop__filterResults').html(productViewHtml);
         }
+
+        $(document).on('click', '.shopAddToCart', function() {
+            const productId = $(this).attr('data-product-id');
+            const data = {
+                product_id: sanitizeHtml(productId),
+                quantity: 1
+            }
+            const response = ajax(data, '/cart/add_to_cart_process');
+            response.done(e => {
+                refreshToken(e);
+                if(e.internalValidationError) {
+                    alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                } else {
+                    if(e.cart) {
+                        update_cart_items(e.cart);
+                        alertAddCart(e.cart, productId);
+                        $('#productQuantity').html(1);
+                    }
+                    if(e.error) {
+                        alertMessage(e.error, 'alertDanger');
+                    }
+                }
+            });
+        });
         getNumberPages();
-    });
 </script>
 <?=$this->endSection()?>

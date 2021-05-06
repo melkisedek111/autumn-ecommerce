@@ -196,21 +196,22 @@ body::-webkit-scrollbar-thumb {
 }
 
 .nav__userLinks .linkCartContainer .cartContainerOutside .cartContainerInside > div > div {
+  margin-top: .5rem;
   border-top: 0.5px solid lightgray;
   padding-top: 20px;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
 }
 
 .nav__userLinks .linkCartContainer .cartContainerOutside .cartContainerInside > div > div img {
-  height: 10rem;
+  height: 8rem;
   width: 7rem;
-  -o-object-fit: cover;
-     object-fit: cover;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 
 .nav__userLinks .linkCartContainer .cartContainerOutside .cartContainerInside > div > div > div {
@@ -601,6 +602,11 @@ body::-webkit-scrollbar-thumb {
 
 .shop__filter .shop__filterBy--size, .shop__filter .shop__filterBy--brands {
   margin-bottom: 50px;
+}
+
+.shop__filter .shop__filterBy--size .active, .shop__filter .shop__filterBy--brands .active {
+  color: white;
+  background-color: black;
 }
 
 .shop__filteredItems {
@@ -1058,7 +1064,7 @@ body::-webkit-scrollbar-thumb {
 .product__view--details > div .product__view--setQuantity {
   display: inline-block;
   border: 0.5px solid lightgray;
-  width: 9.7rem;
+  min-width: 9.7rem;
   text-align: center;
   vertical-align: middle;
   height: 100%;
@@ -2395,6 +2401,26 @@ body::-webkit-scrollbar-thumb {
   width: 100%;
 }
 
+.address .form-group {
+  margin-bottom: 1rem;
+}
+
+.address .form-group label {
+  font-weight: bolder;
+  font-size: 1.1rem;
+}
+
+.address__info {
+  display: block;
+  margin: 0 auto;
+  width: 30rem;
+}
+
+.address input {
+  display: block;
+  margin: 0 auto;
+}
+
 .error {
   border-bottom: .5px solid red;
 }
@@ -2470,9 +2496,9 @@ body::-webkit-scrollbar-thumb {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
+  -webkit-box-pack: start;
+      -ms-flex-pack: start;
+          justify-content: flex-start;
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
@@ -2546,6 +2572,17 @@ body::-webkit-scrollbar-thumb {
 .alertFixedSuccess {
   background-color: limegreen;
   border: 1px solid lime;
+  margin-bottom: .5rem;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.alertFixedDanger {
+  border: .5px solid red;
+  background-color: #810000;
+  margin-bottom: .5rem;
 }
 
 .modal {

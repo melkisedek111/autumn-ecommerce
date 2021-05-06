@@ -185,15 +185,16 @@ body {
 							border: 2px solid #555555;
 						}
 						> div {
+							margin-top: .5rem;
 							border-top: 0.5px solid lightgray;
 							padding-top: 20px;
 							display: flex;
-							justify-content: center;
+							justify-content: flex-start;
 
 							img {
-								height: 10rem;
+								height: 8rem;
 								width: 7rem;
-								object-fit: cover;
+								object-fit: contain;
 							}
 							> div {
 								margin-left: 10px;
@@ -440,6 +441,7 @@ body {
 	display: flex;
 	// display: grid;
 	// grid-template-columns: 300px 850px;
+
 	.tablePagination {
 		margin-top: 1.2rem;
 		display: flex;
@@ -465,6 +467,13 @@ body {
 	&__filter {
 		flex: 0.27;
 		padding: 15px;
+		.shop__search{	
+
+			input {
+
+	
+			}
+		}
 		.shop__categories {
 			padding-bottom: 30px;
 			margin-bottom: 100px;
@@ -490,6 +499,10 @@ body {
 			&--size,
 			&--brands {
 				margin-bottom: 50px;
+				.active {
+					color: white;
+					background-color: black;
+				}
 			}
 		}
 	}
@@ -812,7 +825,7 @@ body {
 				.product__view--setQuantity {
 					display: inline-block;
 					border: 0.5px solid lightgray;
-					width: 9.7rem;
+					min-width: 9.7rem;
 					text-align: center;
 					vertical-align: middle;
 					height: 100%;
@@ -1884,9 +1897,35 @@ body {
 		}
 	}
 }
+
+.address {
+	.form-group {
+		margin-bottom: 1rem;
+		label {
+			font-weight: bolder;
+			font-size: 1.1rem;
+		}
+	}
+	&__info {
+		display: block;
+		margin: 0 auto;
+		width: 30rem;
+		// background-color: red;
+	}
+	input {
+		display: block;
+		margin: 0 auto;
+	}
+}
+
+
+
+
+
 .error {
 	border-bottom: .5px solid red;
 }
+
 .invalid-feedback {
 	color: red;
 	font-size: 1.1rem;
@@ -1932,7 +1971,7 @@ body {
 		}
 		.detailContainer {
 			display: flex;
-			justify-content: space-between;
+			justify-content: flex-start;
 			align-items: center;
 			img {
 				height: 7rem;
@@ -1998,6 +2037,16 @@ body {
 .alertFixedSuccess {
 	background-color: limegreen;
 	border: 1px solid lime;
+	margin-bottom: .5rem;
+}
+.text-left {
+	text-align: left;
+}
+.alertFixedDanger {
+	border: .5px solid red;
+	background-color: #810000;
+	margin-bottom: .5rem;
+
 }
 
 .modal {

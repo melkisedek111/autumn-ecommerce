@@ -121,6 +121,12 @@ class Home extends BaseController
 
     public function index()
     {
+        if($this->session->has('user')) {
+            $isAddressSet = $this->utilities->checkUserAddress(['user_id' => $this->session->get('user')->user_id]);
+            if(!$isAddressSet) {
+                return redirect()->to('/set_address');
+            }
+        }
         return view('home_view');
     }  
 }

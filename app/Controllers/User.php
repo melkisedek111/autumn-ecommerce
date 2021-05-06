@@ -33,9 +33,37 @@ class User extends BaseController
             'login' => [
                 'email' => 'required',
                 'password' => 'required'
+            ],
+            'set_address' => [
+                'address' => 'required',
+                'contact' => 'required|numeric',
+                'city' => 'required|alpha_space',
+                'province' => 'required|alpha_space',
+                'zipcode' => 'required|numeric',
             ]
         ];
         $this->messages = [
+            'set_address' => [
+                'address' => [
+                    'required' => 'Address is required',
+                ],
+                'contact' => [
+                    'required' => 'Contact is required',
+                    'numeric' => 'Contact should be numeric',
+                ],
+                'city' => [
+                    'required' => 'City is required',
+                    'alpha' => 'City should be letter'
+                ],
+                'province' => [
+                    'required' => 'Province is required',
+                    'alpha' => 'Province should be letter'
+                ],
+                'zipcode' => [
+                    'required' => 'Zipcode is required',
+                    'numeric' => 'Zipcode should be numeric',
+                ]
+            ],
             'register' => [
                 'email' => [
                     'required' => 'Email is required!',
@@ -102,6 +130,8 @@ class User extends BaseController
                 $this->rulesAndMessages = $this->utilities->getRules($this->rules['register'], $this->messages['register'], $this->requests->getPost());
             } elseif (isset($this->requests->getPost()['login'])) {
                 $this->rulesAndMessages = $this->utilities->getRules($this->rules['login'], $this->messages['login'], $this->requests->getPost());
+            } elseif (isset($this->requests->getPost()['set_address'])) {
+                $this->rulesAndMessages = $this->utilities->getRules($this->rules['set_address'], $this->messages['set_address'], $this->requests->getPost());
             }
         }
     }
@@ -130,11 +160,40 @@ class User extends BaseController
     {
         return view('admin_login_view', ['pageTitle' => 'Admin Login']);
     }
-    public function logout() {
+    public function set_address()
+    {
+        $isAddressSet = $this->utilities->checkUserAddress(['user_id' => $this->session->get('user')->user_id]);
+        if($isAddressSet) {
+            return redirect()->to('/');
+        }
+        return view('address_view');
+    }
+    public function logout()
+    {
         $this->session->destroy();
         return redirect()->to('/login');
     }
-
+    public function set_address_process()
+    {
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "set_address")) {
+                $data['internalValidationError'] = true; // --> 4
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $user = $this->session->get('user');
+                    $success = $this->UsersModel->set_user_address($this->requests->getPost(), $user->user_id);
+                    if($success) {
+                        $data['isAddressSet'] = true;
+                    } else {
+                        $data['isAddressSet'] = false;
+                    }
+                    echo json_encode($data);
+                }
+            }
+        }
+    }
     public function process()
     {
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
@@ -150,7 +209,7 @@ class User extends BaseController
              * 7. indicator for register user using from ajax
              */
             if (isset($this->requests->getPost()['register'])) { // --> 1
-                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) { // --> 2 
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) { // --> 2
                     if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "register")) { // --> 3
                         $data['internalValidationError'] = true; // --> 4
                         $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
@@ -174,7 +233,6 @@ class User extends BaseController
                             }
                         }
                     }
-                    
                 } else {
                     /**
                      * Non ajax process
@@ -212,7 +270,7 @@ class User extends BaseController
                         if ($this->requests->getPost('ajaxLogin') == true) { // --> 2
                             $user = $this->UsersModel->login_user(($this->requests->getPost())); // --> 3
                             if ($user) {
-                                if($user->user_type == 'normal') {
+                                if ($user->user_type == 'normal') {
                                     $this->session->set('user', $user);
                                     $this->session->set('isLogin', true);
                                     $data['loginSuccess'] = true;
@@ -232,14 +290,14 @@ class User extends BaseController
                         return redirect()->to('/login');
                     } else {
                         $user = $this->UsersModel->login_user(($this->requests->getPost()));
-                        if($user) {
+                        if ($user) {
                             // do something
-                            if($user->user_type == 'normal') {
+                            if ($user->user_type == 'normal') {
                                 $this->session->set('user', $user);
                                 $this->session->set('isLogin', true);
                                 return redirect()->to('/login');
                             }
-                            if($user->user_type == "admin") {
+                            if ($user->user_type == "admin") {
                                 $this->session->set('user', $user);
                                 $this->session->set('isLogin', true);
                                 $this->session->set('isAdminLogin', true);
@@ -251,7 +309,6 @@ class User extends BaseController
                         }
                     }
                 }
-                
             }
         }
     }

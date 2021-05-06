@@ -37,11 +37,14 @@ $routes->get('/', 'Home::index');
 $routes->get('/login', 'User::login');
 $routes->get('/register', 'User::register');
 $routes->get('/logout', 'User::logout');
+$routes->get('/set_address', 'User::set_address');
 $routes->get('/admin', 'User::admin_login');
 $routes->get('/main', 'Admin::index');
 $routes->get('/products', 'Admin::products');
 $routes->get('/shop', 'Shop::index');
 $routes->get('/shop/(:any)', 'Shop::index/$1');
+$routes->get('/products/show/(:any)', 'Shop::products/$1');
+$routes->get('/cart', 'Cart::index');
 
 
 

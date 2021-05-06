@@ -61,15 +61,23 @@ class Shop extends BaseController
 
     public function index(string $filter_keyword = '')
     {
+
+        if($this->session->has('user')) {
+            $isAddressSet = $this->utilities->checkUserAddress(['user_id' => $this->session->get('user')->user_id]);
+            if(!$isAddressSet) {
+                return redirect()->to('/set_address');
+            }
+        }
+
         // if (!$this->utilities->isUserLogin('admin')) {
         //     return redirect()->to('/admin');
         // };
         $keyword = substr($filter_keyword, 2);
         $check_indicator = chop($filter_keyword, $keyword);
 
-        if($check_indicator == 'c_') {
+        if ($check_indicator == 'c_') {
             $set_indicator = 'category';
-        } elseif($check_indicator == 'b_') {
+        } elseif ($check_indicator == 'b_') {
             $set_indicator = 'brand';
         } else {
             $set_indicator = '';
@@ -91,43 +99,67 @@ class Shop extends BaseController
         }
 
 
-        if($filter_keyword !== '') {
+        if ($filter_keyword !== '') {
             if (@$searchCategoryBrand[$keyword]) {
                 $products = $this->ShopModel->get_items(['id' => $searchCategoryBrand[$keyword]], $set_indicator);
-            } elseif(!isset($searchCategoryBrand[$keyword])) {
+            } elseif (!isset($searchCategoryBrand[$keyword])) {
                 $no_items_found = true;
             }
         }
 
          
-        return view('shop_view', 
+        return view(
+            'shop_view',
             [
-            'items_per_category' => $items_per_category['item_per_category'], 
-            'items_per_brand' => $items_per_brand['item_per_brand'], 
-            'total_products' => $items_per_category['total_products'], 
-            'products' => $products['products'], 
+            'items_per_category' => $items_per_category['item_per_category'],
+            'items_per_brand' => $items_per_brand['item_per_brand'],
+            'total_products' => $items_per_category['total_products'],
+            'products' => $products['products'],
             'indicator' => $set_indicator,
+            'prices' => $this->ShopModel->get_min_max_price()['prices'],
             'total_products_row' => $products['total_rows'],
-            'active' => @$searchCategoryBrand[$keyword] ? $searchCategoryBrand[$keyword] : 'all', 
+            'w' => csrf_hash(),
+            'active' => @$searchCategoryBrand[$keyword] ? $searchCategoryBrand[$keyword] : 'all',
             'no_items_found' => @$no_items_found,
             'truncate' => function ($text, $limit) {
-            if (str_word_count($text, 0) > $limit) {
+                if (str_word_count($text, 0) > $limit) {
                     $words = str_word_count($text, 2);
                     $pos   = array_keys($words);
                     $text  = substr($text, 0, $pos[$limit]) . '...';
                 }
                 return $text;
             }
-        ]);
+        ]
+        );
     }
 
-    public function filter_products() {
+    public function filter_products()
+    {
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
             if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
-                $data['products'] = $this->ShopModel->get_items(['id' => $this->requests->getPost('indicator_id')], $this->requests->getPost('indicatorName'), $this->requests->getPost('page_number'));
-                echo json_encode($data);
+                if ($this->requests->getPost('filterByName') != null) {
+                    $data['products'] = $this->ShopModel->get_product_by_name(['name' => $this->requests->getPost('name')]);
+                    echo json_encode($data);
+                } elseif ($this->requests->getPost('filterBySort') != null) {
+                    $data['products'] = $this->requests->getPost();
+                    echo json_encode($data);
+                } elseif ($this->requests->getPost('filterByPrice') != null) {
+                    $data['products'] = $this->ShopModel->get_product_by_price(['min_price' => $this->requests->getPost('minPrice'), 'max_price' => $this->requests->getPost('maxPrice')]);
+                    echo json_encode($data);
+                } else {
+                    $data['products'] = $this->ShopModel->get_items(['id' => $this->requests->getPost('indicator_id')], $this->requests->getPost('indicatorName'), $this->requests->getPost('page_number'));
+                    // $data['data'] = $this->requests->getPost();
+                    echo json_encode($data);
+                }
             }
         }
+    }
+
+    public function products(string $id) {
+
+
+        $products = $this->ShopModel->get_product_by_id(['product_id' => $id]);
+        return view('show_product_view', ['products' => $products]);
     }
 }

@@ -69,4 +69,25 @@ class UsersModel extends Model
             return [];
         }
     }
+
+    public function set_user_address(array $posts, string $user_id) {
+        unset($posts['set_address']);
+        $sanitizedPost = $this->sanitizing($posts);
+        $sanitizedPost['isShipping'] = 1;
+        $sanitizedPost['isBilling'] = 0;
+        $sanitizedPost['user_id'] = $user_id;
+        $address_builder = $this->db->table('addresses');
+        $address_builder->insert($sanitizedPost);
+        return $this->db->affectedRows();
+    }
+
+    public function get_user_address(array $posts) {
+        $sanitizedPost = $this->sanitizing($posts);
+        $address_builder = $this->db->table('addresses');
+        $address_builder->select('COUNT(*) as address_count');
+        $address_builder->where('user_id', $sanitizedPost['user_id']);
+        $address_builder->where('isShipping', 1);
+        $address_count = $address_builder->get();
+        return $address_count->getRow();
+    }
 }

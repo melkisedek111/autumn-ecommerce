@@ -1,15 +1,17 @@
 <?php
 
 namespace App\Helpers;
-
+use App\Models\UsersModel;
 use App\Controllers\BaseController;
 class Utilities extends BaseController
 {
     protected $session;
     protected $requests;
+    protected $UserModel;
     public function __construct()
     {
-         $this->session = session();
+        $this->UserModel = new UsersModel;
+        $this->session = session();
     }
     
     public function alert($class, $head, $message)
@@ -60,5 +62,10 @@ class Utilities extends BaseController
         } else {
             return false;
         }
+    }
+
+    public function checkUserAddress(array $posts) {
+        $isAddressSet = $this->UserModel->get_user_address($posts);
+        return $isAddressSet->address_count ? true : false;
     }
 }

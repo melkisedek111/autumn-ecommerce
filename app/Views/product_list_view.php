@@ -508,10 +508,10 @@
                                     if(e.data.category) {
                                         $('.categoryOptions').prepend(
                                             `<div class="selectOption" data-name="category" data-id="${e.data.category.id}">
-                                                <h3 class="selectValue" data-select-value="${e.data.category.category_name}" data-name="category" data-id="${e.data.category.category_id}">${e.data.category.category_name}</h3>
+                                                <h3 class="selectValue" data-select-value="${e.data.category.category_name}" data-name="category" data-id="${e.data.category.id}">${e.data.category.category_name}</h3>
                                                 <div class="selectOptionButtons">
-                                                    <span class="far fa-edit editSelect" data-name="category" data-id="${e.data.category.category_id}"></span>
-                                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="${e.data.category.category_id}"></span>
+                                                    <span class="far fa-edit editSelect" data-name="category" data-id="${e.data.category.id}"></span>
+                                                    <span class="far fa-trash-alt deleteCategory" data-name="category" data-id="${e.data.category.id}"></span>
                                                 </div>
                                             </div>`
                                         );
@@ -519,10 +519,10 @@
                                     if(e.data.brand) {
                                         $('.brandOptions').prepend(
                                             `<div class="selectOption" data-name="brand" data-id="${e.data.brand.id}">
-                                                <h3 class="selectValue" data-select-value="${e.data.brand.brand_name}" data-name="brand" data-id="${e.data.brand.brand_id}">${e.data.brand.brand_name}</h3>
+                                                <h3 class="selectValue" data-select-value="${e.data.brand.brand_name}" data-name="brand" data-id="${e.data.brand.id}">${e.data.brand.brand_name}</h3>
                                                 <div class="selectOptionButtons">
-                                                    <span class="far fa-edit editSelect" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
-                                                    <span class="far fa-trash-alt deleteBrand" data-name="brand" data-id="${e.data.brand.brand_id}"></span>
+                                                    <span class="far fa-edit editSelect" data-name="brand" data-id="${e.data.brand.id}"></span>
+                                                    <span class="far fa-trash-alt deleteBrand" data-name="brand" data-id="${e.data.brand.id}"></span>
                                                 </div>
                                             </div>`
                                         );
