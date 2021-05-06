@@ -532,6 +532,36 @@ body::-webkit-scrollbar-thumb {
   display: flex;
 }
 
+.shop .tablePagination {
+  margin-top: 1.2rem;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+}
+
+.shop .tablePagination a:nth-child(1) {
+  border-left: 0.5px solid lightgray;
+}
+
+.shop .tablePagination a {
+  padding: 5px 10px;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
+  text-decoration: none;
+  color: black;
+  border-right: 0.5px solid lightgray;
+  border-top: 0.5px solid lightgray;
+  border-bottom: 0.5px solid lightgray;
+}
+
+.shop .tablePagination a:hover {
+  background-color: black;
+  color: white;
+}
+
 .shop__filter {
   -webkit-box-flex: 0.27;
       -ms-flex: 0.27;
@@ -729,6 +759,11 @@ body::-webkit-scrollbar-thumb {
 .shop .shop__filterBy a:hover {
   color: white;
   background-size: 100% 100%;
+}
+
+.shop .shop__categories .active {
+  color: white;
+  background-color: black;
 }
 
 .form-control:not(:last-child) {

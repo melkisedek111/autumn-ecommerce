@@ -4,7 +4,7 @@ namespace App\Models;
 
 use CodeIgniter\Model;
 
-class ProductsModel extends Model
+class ShopModel extends Model
 {
     protected $db;
 
@@ -25,12 +25,59 @@ class ProductsModel extends Model
         }, $array);
     }
 
+
+    public function get_items_per_categories_brands(string $table, string $name): array {
+        $categoryBuilder = $this->db->table($table);
+        $categoryBuilder->select("{$table}.id as {$name}_id, {$name}_name, COUNT(products.id) as items_per_{$name}");
+        $categoryBuilder->join('products', "{$table}.id = products.{$name}_id", 'left');
+        $categoryBuilder->groupBy("{$name}_name");
+        $item_per_category = $categoryBuilder->get();
+        $productBuilder = $this->db->table('products');
+        $productBuilder->select('COUNT(*) as total_products');
+        $total_products = $productBuilder->get();
+        return ["item_per_{$name}" => $item_per_category->getResult(), 'total_products' => $total_products->getRow()];
+    }
+
+    public function check_indicator() {
+
+    }
+
+    public function get_items(array $posts = [], string $name = '', $offset = 0): array {
+        $sanitizedPost = $this->sanitizing($posts);
+        $productsBuilder = $this->db->table('products');
+        $productsBuilder->select('products.id as product_id, name, description, price, image');
+        $productsBuilder->join('product_images', 'product_images.product_id = products.id');
+        $productsBuilder->where('product_images.status', 1);
+        $productsBuilder->orderBy('products.created_at', 'DESC');
+
+        if($name != '') {
+            $productsBuilder->limit(9, $offset);
+            $productsBuilder->where(["{$name}_id" => $sanitizedPost['id']]);
+
+            $check_row_products = $this->db->table('products');
+            $check_row_products->select('COUNT(*) as total_rows');
+            $check_row_products->where(["{$name}_id" => $sanitizedPost['id']]);
+            $query = $check_row_products->get();
+        } else {
+            $productsBuilder->limit(9, 0);
+            
+            $check_row_products = $this->db->table('products');
+            $check_row_products->select('COUNT(*) as total_rows');
+            $query = $check_row_products->get();
+            
+        }
+        $products = $productsBuilder->get();
+        return ['products' => $products->getResult(), 'total_rows' => $query->getRow()->total_rows];
+
+    }
+
     public function get_products(int $id = null): array {
         $productsBuilder = $this->db->table('products');
         $productsBuilder->select('products.id as product_id, name, description, stock_quantity, stock_sold, stock_status, image');
         $productsBuilder->join('product_images', 'product_images.product_id = products.id');
         $productsBuilder->join('stocks', 'stocks.product_id = products.id', 'left');
         $productsBuilder->where('product_images.status', 1);
+
         $productsBuilder->orderBy('products.created_at', 'DESC');
         if($id) {
             $productsBuilder->where('products.id', $id);

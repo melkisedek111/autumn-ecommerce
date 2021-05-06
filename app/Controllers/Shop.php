@@ -4,12 +4,14 @@ namespace App\Controllers;
 
 use App\Helpers\Utilities;
 use App\Models\ProductsModel;
+use App\Models\ShopModel;
 
 class Shop extends BaseController
 {
     protected $session;
     protected $requests;
     protected $ProductsModel;
+    protected $ShopModel;
     protected $token;
     protected $rules;
     protected $messages;
@@ -18,64 +20,22 @@ class Shop extends BaseController
     public function __construct()
     {
         $this->ProductsModel = new ProductsModel;
+        $this->ShopModel = new ShopModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
         $this->utilities = new Utilities;
 
         $this->rules =  [
-                'name' => 'required|min_length[3]|max_length[150]',
-                'category_id' => 'required|numeric',
-                'brand_id' => 'required|numeric',
-                'product_id' => 'required|numeric',
-                'description' => 'required',
-                'price' => 'required|decimal',
-                'category_name' => 'required|min_length[2]|max_length[250]',
-                'brand_name' => 'required|min_length[2]|max_length[250]',
                 'page_number' => 'required|numeric',
+                'indicator_id' => 'numeric',
         ];
         $this->messages = [
-            'name' => [
-                'required' => 'Product is required!',
-                'min_length' => 'Product name should at least 3 characters',
-                'max_length' => 'Product name should be maximum 150 characters'
-            ],
-            'category_id' => [
-                'required' => 'Category is required!',
-                'numeric' => 'Category should be numeric',
-            ],
-            'brand_id' => [
-                'required' => 'Brand is required!',
-                'numeric' => 'Brand should be numeric',
-            ],
-            'product_id' => [
-                'required' => 'Product is required!',
-                'numeric' => 'Product should be numeric',
-            ],
-            'description' => [
-                'required' => 'Description is required!',
-            ],
-            'price' => [
-                'required' => 'Price is required!',
-                'decimal' => 'Price should a decimal',
-            ],
-            'image' => [
-                'uploaded' => 'Product image is required',
-                'mime_in' => 'Invalid file image type',
-                'max_size' => 'Image max files size is 2MB'
-            ],
-            'category_name' => [
-                'required' => 'Category is required!',
-                'min_length' => 'Category name should at least 2 characters',
-                'max_length' => 'Category name should be maximum 250 characters'
-            ],
-            'brand_name' => [
-                'required' => 'Category is required!',
-                'min_length' => 'Category name should at least 2 characters',
-                'max_length' => 'Category name should be maximum 250 characters'
-            ],
             'page_number' => [
                 'required' => 'Page number is required!',
+                'numeric' => 'Product should be numeric',
+            ],
+            'indicator_id' => [
                 'numeric' => 'Product should be numeric',
             ],
         ];
@@ -99,11 +59,75 @@ class Shop extends BaseController
     }
 
 
-    public function index()
+    public function index(string $filter_keyword = '')
     {
         // if (!$this->utilities->isUserLogin('admin')) {
         //     return redirect()->to('/admin');
-        // }
-        return view('shop_view');
+        // };
+        $keyword = substr($filter_keyword, 2);
+        $check_indicator = chop($filter_keyword, $keyword);
+
+        if($check_indicator == 'c_') {
+            $set_indicator = 'category';
+        } elseif($check_indicator == 'b_') {
+            $set_indicator = 'brand';
+        } else {
+            $set_indicator = '';
+        }
+
+        $searchCategoryBrand = [];
+        $products = $this->ShopModel->get_items([], '');
+        $items_per_category = $this->ShopModel->get_items_per_categories_brands('categories', 'category');
+        foreach ($items_per_category['item_per_category'] as $category) {
+            $convert_ampersand = str_replace('&amp;', '&', $category->category_name);
+            $convert_spaces = str_replace(' ', '-', $convert_ampersand);
+            $searchCategoryBrand[strtolower($convert_spaces)] = $category->category_id;
+        }
+        $items_per_brand = $this->ShopModel->get_items_per_categories_brands('brands', 'brand');
+        foreach ($items_per_brand['item_per_brand'] as $brand) {
+            $convert_ampersand = str_replace('&amp;', '&', $brand->brand_name);
+            $convert_spaces = str_replace(' ', '-', $convert_ampersand);
+            $searchCategoryBrand[strtolower($convert_spaces)] = $brand->brand_id;
+        }
+
+
+        if($filter_keyword !== '') {
+            if (@$searchCategoryBrand[$keyword]) {
+                $products = $this->ShopModel->get_items(['id' => $searchCategoryBrand[$keyword]], $set_indicator);
+            } elseif(!isset($searchCategoryBrand[$keyword])) {
+                $no_items_found = true;
+            }
+        }
+
+         
+        return view('shop_view', 
+            [
+            'items_per_category' => $items_per_category['item_per_category'], 
+            'items_per_brand' => $items_per_brand['item_per_brand'], 
+            'total_products' => $items_per_category['total_products'], 
+            'products' => $products['products'], 
+            'indicator' => $set_indicator,
+            'total_products_row' => $products['total_rows'],
+            'active' => @$searchCategoryBrand[$keyword] ? $searchCategoryBrand[$keyword] : 'all', 
+            'no_items_found' => @$no_items_found,
+            'truncate' => function ($text, $limit) {
+            if (str_word_count($text, 0) > $limit) {
+                    $words = str_word_count($text, 2);
+                    $pos   = array_keys($words);
+                    $text  = substr($text, 0, $pos[$limit]) . '...';
+                }
+                return $text;
+            }
+        ]);
+    }
+
+    public function filter_products() {
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                $data['products'] = $this->ShopModel->get_items(['id' => $this->requests->getPost('indicator_id')], $this->requests->getPost('indicatorName'), $this->requests->getPost('page_number'));
+                echo json_encode($data);
+            }
+        }
     }
 }

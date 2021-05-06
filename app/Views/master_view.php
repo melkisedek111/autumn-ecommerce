@@ -169,13 +169,14 @@
                 </div>`);
             $('body').addClass("modalOpen");
         }
-        function setPagination(totalRecords, pageNumber = 1) {
+        function setPagination(totalRecords, pageNumber = 1, rowOffSet = 5) {
             const pageNumberContainer = document.createElement('div');
             pageNumberContainer.setAttribute('class', 'pageNumbers');
             $('.tablePagination').html(pageNumberContainer);
-            const  totalNumberPages = totalRecords % 5 === 1 ? Math.round(totalRecords / 5) + 1 : Math.round(totalRecords / 5);
+            const  totalNumberPages = totalRecords % rowOffSet > 0 ? Math.round(totalRecords / rowOffSet) + 1 : Math.round(totalRecords / rowOffSet);
+   
             const secondLast = totalNumberPages - 1;
-            let offset = (pageNumber - 1) * 5;
+            let offset = (pageNumber - 1) * rowOffSet;
             let nextPage = pageNumber + 1;
             let previousPage = pageNumber - 1;
             let adjacents = 2;

@@ -440,6 +440,28 @@ body {
 	display: flex;
 	// display: grid;
 	// grid-template-columns: 300px 850px;
+	.tablePagination {
+		margin-top: 1.2rem;
+		display: flex;
+		justify-content: center;
+		a:nth-child(1) {
+			border-left: 0.5px solid lightgray;
+		}
+		a {
+			// margin-right: .2rem;
+			padding: 5px 10px;
+			transition: 0.4s;
+			text-decoration: none;
+			color: black;
+			border-right: 0.5px solid lightgray;
+			border-top: 0.5px solid lightgray;
+			border-bottom: 0.5px solid lightgray;
+		}
+		a:hover {
+			background-color: black;
+			color: white;
+		}
+	}
 	&__filter {
 		flex: 0.27;
 		padding: 15px;
@@ -586,6 +608,10 @@ body {
 	.shop__filterBy a:hover {
 		color: white;
 		background-size: 100% 100%;
+	}
+	.shop__categories .active {
+		color: white;
+		background-color: black;
 	}
 }
 .form-control:not(:last-child) {
