@@ -82,9 +82,14 @@
         <div class="nav__navLinks">
             <a href="/home">Home</a>
             <a href="/shop">Shop</a>
-            <a href="/main">Orders</a>
-            <a href="/products">Products</a>
-            <a href="/collections">Collections</a>
+            <?php if(session()->has('user')): ?>
+                <?php if(session()->get('user')->user_type == 'admin'): ?>
+                    <a href="/main">Orders</a>
+                    <a href="/products">Products</a>
+                    <a href="/collections">Collections</a>
+                <?php endif; ?>
+            <?php endif; ?>
+          
         </div>
         <div class="nav__userLinks">
             <a href=""><i class="far fa-user"></i></a>

@@ -45,6 +45,8 @@ $routes->get('/shop', 'Shop::index');
 $routes->get('/shop/(:any)', 'Shop::index/$1');
 $routes->get('/products/show/(:any)', 'Shop::products/$1');
 $routes->get('/cart', 'Cart::index');
+$routes->get('/checkout', 'Checkout::index');
+$routes->get('/success', 'Checkout::success');
 
 
 

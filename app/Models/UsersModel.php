@@ -81,7 +81,7 @@ class UsersModel extends Model
         return $this->db->affectedRows();
     }
 
-    public function get_user_address(array $posts) {
+    public function check_user_address(array $posts) {
         $sanitizedPost = $this->sanitizing($posts);
         $address_builder = $this->db->table('addresses');
         $address_builder->select('COUNT(*) as address_count');
@@ -90,4 +90,16 @@ class UsersModel extends Model
         $address_count = $address_builder->get();
         return $address_count->getRow();
     }
+
+    public function get_user_address(array $posts) {
+        $sanitizedPost = $this->sanitizing($posts);
+        $address_builder = $this->db->table('addresses');
+        $address_builder->select('*');
+        $address_builder->where('user_id', $sanitizedPost['user_id']);
+        $address_builder->where('isShipping', 1);
+        $address_count = $address_builder->get();
+        return $address_count->getRow();
+    }
+
+
 }

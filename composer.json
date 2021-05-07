@@ -7,7 +7,7 @@
 	"require": {
 		"php": "^7.3||^8.0",
 		"codeigniter4/framework": "^4",
-		"stripe/stripe-php": "^7.76"
+		"stripe/stripe-php": "^7.78"
 	},
 	"require-dev": {
 		"fakerphp/faker": "^1.9",

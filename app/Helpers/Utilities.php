@@ -65,7 +65,7 @@ class Utilities extends BaseController
     }
 
     public function checkUserAddress(array $posts) {
-        $isAddressSet = $this->UserModel->get_user_address($posts);
+        $isAddressSet = $this->UserModel->check_user_address($posts);
         return $isAddressSet->address_count ? true : false;
     }
 }

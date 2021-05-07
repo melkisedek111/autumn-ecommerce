@@ -67,7 +67,7 @@
                     </table>
                </div>
               <div class="misc">
-                <a href="" class="btn hover-invert">Go to Checkout</a>
+                <a href="/checkout" class="btn hover-invert" <?= count($cart_items) ? '' : 'disabled'; ?>>Go to Checkout</a>
               </div>
             </div>
         </div>
