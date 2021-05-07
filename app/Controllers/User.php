@@ -167,7 +167,19 @@ class User extends BaseController
         }
         $user = $this->session->get('user');
         $orders = $this->UsersModel->get_user_orders(['user_id' => $user->user_id]);
-        return view('user_order_view', ['order_details' => $orders['order_details'], 'order_product_lists' => $orders['order_product_lists']]);
+        if(count($orders)) {
+            return view('user_order_view', ['order_details' => $orders['order_details'], 'order_product_lists' => $orders['order_product_lists'], 'set_status' => function($status){
+                if($status == 'Order in process') {
+                    return 'process';
+                } elseif ($status == 'Shipped') {
+                    return 'shipped';
+                } elseif ($status == 'Cancelled') {
+                    return 'cancelled';
+                }
+            }]);
+        } else {
+            return view('user_order_view', []);
+        }
     }
     public function set_address()
     {

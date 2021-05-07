@@ -111,10 +111,11 @@ class ShopModel extends Model
     public function get_product_by_id(array $posts) {
         $sanitizedPost = $this->sanitizing($posts);
         $products_builder = $this->db->table('products');
-        $products_builder->select('products.id as product_id, products.category_id as category_id, category_name, products.brand_id as brand_id, brand_name, price, name, description, image');
+        $products_builder->select('products.id as product_id, products.category_id as category_id, category_name, products.brand_id as brand_id, brand_name, price, name, description, image, stock_quantity, stock_sold, stock_status');
         $products_builder->join('categories', 'categories.id = products.category_id', 'left');
         $products_builder->join('brands', 'brands.id = products.brand_id', 'left');
         $products_builder->join('product_images', 'product_images.product_id = products.id');
+        $products_builder->join('stocks', 'stocks.product_id = products.id', 'left');
         $products_builder->where('product_images.status', 1);
         $products_builder->where('products.id', $sanitizedPost['product_id']);
         $product = $products_builder->get();

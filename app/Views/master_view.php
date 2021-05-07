@@ -233,6 +233,19 @@
                 </div>`);
             $('body').addClass("modalOpen");
         }
+
+        function addQuantityModal(id) {
+            $('body').prepend(`<div class="modal">
+                    <div>
+                        <h3>Quantity</h3>
+                        <input type="number" class="form-control" id="productQuantity" placeholder="Please enter product quantity!" style="margin-bottom: 10px;">
+                        <button class="btn hover" id="addQuantityModal">Cancel</button>
+                        <button class="btn hover-success" data-id="${id}" id="addQuantityModalBtn">Add</button>
+                    </div>
+                </div>`);
+            $('body').addClass("modalOpen");
+        }
+
         function setPagination(totalRecords, pageNumber = 1, rowOffSet = 5) {
             const pageNumberContainer = document.createElement('div');
             pageNumberContainer.setAttribute('class', 'pageNumbers');
@@ -299,7 +312,7 @@
         function removeModalDelete() {
             $('.modal').remove();
         }
-        $(document).on('click', '#removeModalDelete', function() {
+        $(document).on('click', '#removeModalDelete, #addQuantityModal', function() {
             $(this).parent().parent().remove();
             // $('body').removeClass("modalOpen");
         });

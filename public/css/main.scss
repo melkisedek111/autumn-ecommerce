@@ -1991,6 +1991,16 @@ body {
     }
 }
 
+.shipped {
+	background-color: rgb(38, 250, 38) !important;
+}
+.process {
+	background-color: lightgray !important; 
+}
+.cancelled {
+	background-color: red !important;
+	color: white;
+}
 
 
 .error {

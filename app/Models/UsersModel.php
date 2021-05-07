@@ -108,7 +108,7 @@ class UsersModel extends Model
         $order_builder->where('user_id', $sanitized_posts['user_id']);
         $orders = $order_builder->get();
         $order_details = $orders->getResult();
-        if(count($order_details)) {
+        if(!count($order_details)) {
             return [];
         }
         $order_product_lists = [];

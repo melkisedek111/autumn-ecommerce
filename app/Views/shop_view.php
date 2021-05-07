@@ -263,6 +263,9 @@
                 if(e.internalValidationError) {
                     alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
                 } else {
+                    if(e.no_stock) {
+                        alertMessage(e.no_stock, 'alertDanger');
+                    }
                     if(e.cart) {
                         update_cart_items(e.cart);
                         alertAddCart(e.cart, productId);

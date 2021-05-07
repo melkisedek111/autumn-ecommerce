@@ -23,7 +23,7 @@
                     <small>Autumn</small>
                     <h1><?= $products['details']->name; ?></h1>
                     <h2>$<?= $products['details']->price; ?></h2>
-                    <h3>Available: <span>45</span> in stock</h3>
+                    <h3>Available: <span><?= $products['details']->stock_quantity; ?></span> in stock</h3>
                     <p><?= $products['details']->description; ?></p>
                     <div>
                         <div class="product__view--setQuantity">

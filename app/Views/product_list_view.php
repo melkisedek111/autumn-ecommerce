@@ -15,29 +15,15 @@
                     <thead>
                         <tr>
                             <th width="25%">Picture</th>
-                            <th width="10%">ID</th>
+                            <th width="5%">ID</th>
                             <th width="25%">Name</th>
                             <th width="10%">Inventory Count</th>
                             <th width="10%">Quantity Sold</th>
-                            <th width="15%">Action</th>
+                            <th width="20%">Action</th>
                         </tr>
                     </thead>
                     <tbody id="productsTbody">
-                        <!-- <?php foreach($products as $product): ?>
-                            <tr id="product_<?= $product->product_id ?>">
-                                <td><img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->name ?>"></td>
-                                <td><?= $product->product_id ?></td>
-                                <td><?= $product->name ?></td>   
-                                <td><?= $product->stock_quantity ? $product->stock_quantity : 0 ?></td>
-                                <td><?= $product->stock_sold ? $product->stock_sold : 0 ?></td>
-                                <td>
-                                    <div class="productTableAction">
-                                        <button class="btn hover editProduct" data-id="<?= $product->product_id ?>"><span class="far fa-edit"></span></button>
-                                        <button class="btn hover-danger deleteProduct" data-id="<?= $product->product_id ?>" data-name="product"><span class="far fa-trash"></span></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?> -->
+
                     </tbody>
                 </table>
                 <div class="tablePagination">
@@ -362,8 +348,9 @@
                                     <td>${e.data.product.stock_sold ? e.data.product.stock_sold : 0}</td>
                                     <td>
                                         <div class="productTableAction">
+                                            <button class="btn hover addQuantity" data-id="${product.product_id}"><span class="far fa-plus"></span></button>
                                             <button class="btn hover editProduct" data-id="${e.data.product.product_id}"><span class="far fa-edit"></span></button>
-                                                <button class="btn hover-danger deleteProduct" data-id="${e.data.product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
+                                            <button class="btn hover-danger deleteProduct" data-id="${e.data.product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
                                         </div>
                                     </td>
                                 </tr>
@@ -373,7 +360,6 @@
                             alertMessage('Product has been added', 'alertSuccess'); // --> message if there are somethings wrong in validations
                         }
                         if(e.data.isProductUpdated) {
-                            console.log(e);
                             $(`#product_${e.data.product.product_id}`).replaceWith(`
                                 <td><img src="/assets/product_uploads/${e.data.product.image}" alt="${e.data.name}"></td>
                                 <td>${e.data.product.product_id}</td>
@@ -810,6 +796,56 @@
                 });
             });
 
+            $(document).on('click', '#addQuantityModalBtn', function() {
+                const productId = $(this).attr('data-id');
+                const quantity = $('#productQuantity').val();
+                console.log('11');
+                if(quantity == '') {
+                    alertMessage('Quantity must not be empty!', 'alertDanger');
+                    return;
+                } else {
+                    loading();
+                    const data = {
+                        product_id: sanitizeHtml(productId),
+                        quantity: sanitizeHtml(quantity)
+                    };
+                    const response = ajax(data, '/admin/add_quantity');
+                    response.done(e => {
+                        if(e.internalValidationError) {
+                            alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                        } else {
+                            if(e.data) {
+                                $(`#product_${e.data.product_id}`).replaceWith(`
+                                    <td><img src="/assets/product_uploads/${e.data.image}" alt="${e.data.name}"></td>
+                                    <td>${e.data.product_id}</td>
+                                    <td>${e.data.name}</td>   
+                                    <td>${e.data.stock_quantity ? e.data.stock_quantity : 0}</td>
+                                    <td>${e.data.stock_sold ? e.data.stock_sold : 0}</td>
+                                    <td>
+                                        <div class="productTableAction">
+                                            <button class="btn hover editProduct" data-id="${e.data.product_id}"><span class="far fa-edit"></span></button>
+                                                <button class="btn hover-danger deleteProduct" data-id="${e.data.product_id}" data-name="product"><span class="far fa-trash"></span></button>
+                                        </div>
+                                    </td>
+                                `);
+                                alertMessage("Quantity has been added", 'alertSuccess'); // --> message if there are somethings wrong in validations
+                            }
+                        }
+                        $('#productQuantity').val('');
+                        removeModalDelete();
+                        $('.closeModal').click();
+                        unsetLoading();
+                    });
+                }
+
+            });
+            $(document).on('click', '.addQuantity', function() {
+                const productId = $(this).attr('data-id');
+                $('#productQuantity').val('');
+                addQuantityModal(productId);
+            });
+
+
             function getNumberPages() {
                 const data = {
                     page_number: (1 - 1) * 5 
@@ -854,8 +890,9 @@
                             <td>${product.stock_sold ? product.stock_sold : 0}</td>
                             <td>
                                 <div class="productTableAction">
+                                    <button class="btn hover addQuantity" data-id="${product.product_id}"><span class="far fa-plus"></span></button>
                                     <button class="btn hover editProduct" data-id="${product.product_id}"><span class="far fa-edit"></span></button>
-                                        <button class="btn hover-danger deleteProduct" data-id="${product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
+                                    <button class="btn hover-danger deleteProduct" data-id="${product.product_id}" data-name="product"><span class="far fa-trash"></span></button>
                                 </div>
                             </td>
                         </tr>`;

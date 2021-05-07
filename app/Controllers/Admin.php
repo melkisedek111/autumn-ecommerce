@@ -125,7 +125,6 @@ class Admin extends BaseController
         $categories = $this->ProductsModel->get_categories_brand('categories', 'id as category_id, category_name', 'created_at DESC');
         $brands = $this->ProductsModel->get_categories_brand('brands', 'id as brand_id, brand_name', 'created_at DESC');
         $products = $this->ProductsModel->get_products();
-
         return view('product_list_view', ['categories' => $categories, 'brands' => $brands, 'products' => $products]);
     }
 
@@ -438,6 +437,25 @@ class Admin extends BaseController
         } else {
             return redirect()->to('/main');
         }
-        
+    }
+
+    public function add_quantity() {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/');
+        }
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "order")) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $add_quantity = $this->ProductsModel->add_quantity($this->requests->getPost());
+                    $data['data'] = $add_quantity ? $add_quantity[0] : false;
+                    echo json_encode($data);
+                }
+            }
+        }
     }
 }

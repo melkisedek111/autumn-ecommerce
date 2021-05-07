@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Helpers\Utilities;
 use App\Models\CartsModel;
+use App\Models\ProductsModel;
 
 class Cart extends BaseController
 {
@@ -11,6 +12,7 @@ class Cart extends BaseController
     protected $requests;
     protected $CartsModel;
     protected $ShopModel;
+    protected $ProductsModel;
     protected $token;
     protected $rules;
     protected $messages;
@@ -19,6 +21,7 @@ class Cart extends BaseController
     public function __construct()
     {
         $this->CartsModel = new CartsModel;
+        $this->ProductsModel = new ProductsModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
@@ -123,11 +126,17 @@ class Cart extends BaseController
                 if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
                     $user = $this->session->get('user');
                     $cart = $this->CartsModel->add_product_to_cart(['product_id' => $this->requests->getPost('product_id'), 'user_id' => $user->user_id, 'quantity' => $this->requests->getPost('quantity')]);
-                    if($cart) {
-                        $data['cart'] = $this->CartsModel->get_user_cart_header(['user_id' => $user->user_id]);
+                    $check_product = $this->ProductsModel->check_has_product_stock(['product_id' => $this->requests->getPost('product_id'), 'quantity' => $this->requests->getPost('quantity')]);
+                    if($check_product) {
+                        if($cart) {
+                            $data['cart'] = $this->CartsModel->get_user_cart_header(['user_id' => $user->user_id]);
+                        } else {
+                            $data['error'] = 'Something went wrong';
+                        }
                     } else {
-                        $data['error'] = 'Something went wrong';
+                        $data['no_stock'] = 'Not enough stock, please adjust your quantitiy';
                     }
+
                     echo json_encode($data);
                 }
             }

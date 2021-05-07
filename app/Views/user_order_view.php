@@ -4,45 +4,29 @@
     <div class="order">
         <h1>My Orders</h1>
         <div class="order__lists">
-            <div class="order__lists--list">
-                <div class="orderHeader">
-                    <div>
-                        <h3>Order: 345352337632092</h3>
-                        <h5>Placed on 25 Dec 2020 11:34:16</h5>
+            <?php if(@$order_details != null): ?>
+                <?php foreach($order_details as $order): ?>
+                <div class="order__lists--list">
+                    <div class="orderHeader">
+                        <div>
+                            <h3>Order: #<?= $order->order_id; ?> </h3>
+                            <h5>Placed on <?= $order->order_created; ?></h5>
+                        </div>
+                        <h3>Total: $<?= $order->total_amount; ?></h3>
                     </div>
-                    <h3>Total: $785.55</h3>
+                    <?php foreach($order_product_lists[$order->order_id] as $product): ?>
+                        <div class="orderDetais">
+                            <img src="/assets/product_uploads/<?= $product->image ?>" alt="<?= $product->product_name; ?>">
+                            <h2><?= $product->product_name; ?></h2>
+                            <h3>Quantity: <span><?= $product->quantity; ?></span></h3>
+                            <h3 class="orderStatus <?= $set_status($order->order_status); ?>"><?= $order->order_status; ?></h3>
+                            <h3>$<?= $product->product_price; ?></h3>
+                        </div>
+                    <?php endforeach; ?>
                 </div>
-                <div class="orderDetais">
-                    <img src="https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                    <h2>Lactote Designer Bag Limited Edition</h2>
-                    <h3>Quantity: <span>1</span></h3>
-                    <h3 class="orderStatus">delivered</h3>
-                    <h3>$45.55</h3>
-                </div>
-                <div class="orderDetais">
-                    <img src="https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                    <h2>Lactote Designer Bag Limited Edition</h2>
-                    <h3>Quantity: <span>1</span></h3>
-                    <h3 class="orderStatus">delivered</h3>
-                    <h3>$45.55</h3>
-                </div>
-            </div>
-            <div class="order__lists--list">
-                <div class="orderHeader">
-                    <div>
-                        <h3>Order: 345352337632092</h3>
-                        <h5>Placed on 25 Dec 2020 11:34:16</h5>
-                    </div>
-                    <h3>Total: $785.55</h3>
-                </div>
-                <div class="orderDetais">
-                    <img src="https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                    <h2>Lactote Designer Bag Limited Edition</h2>
-                    <h3>Quantity: <span>1</span></h3>
-                    <h3 class="orderStatus">delivered</h3>
-                    <h3>$45.55</h3>
-                </div>
-            </div>
+            <?php endforeach; ?>
+            <?php endif; ?>
+
         </div>
     </div>
 <script>

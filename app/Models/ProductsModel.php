@@ -40,18 +40,19 @@ class ProductsModel extends Model
     }
 
     public function get_product(array $posts): array {
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $products_builder = $this->db->table('products');
-        $products_builder->select('products.id as product_id, products.category_id as category_id, category_name, products.brand_id as brand_id, brand_name, price, name, description');
+        $products_builder->select('products.id as product_id, products.category_id as category_id, category_name, products.brand_id as brand_id, brand_name, price, name, description, stock_quantity, stock_sold, stock_status');
         $products_builder->join('categories', 'categories.id = products.category_id', 'left');
+        $products_builder->join('stocks', 'stocks.product_id = products.id', 'left');
         $products_builder->join('brands', 'brands.id = products.brand_id', 'left');
-        $products_builder->where('products.id', $sanitizedPost['product_id']);
+        $products_builder->where('products.id', $sanitize_posts['product_id']);
         $product = $products_builder->get();
         $productDetails = $product->getRow();
         
         $product_image_builder = $this->db->table('product_images');
         $product_image_builder->select('id as image_id, product_id, image, status');
-        $product_image_builder->where('product_id', $sanitizedPost['product_id']);
+        $product_image_builder->where('product_id', $sanitize_posts['product_id']);
         $images = $product_image_builder->get();
         $productImages = $images->getResult();
         return ['details' => $productDetails, 'images' => $productImages];
@@ -60,15 +61,15 @@ class ProductsModel extends Model
 
     public function delete_product(array $posts): array {
         unset($posts['indicator']);
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $product_image_builder = $this->db->table('product_images');
         $product_image_builder->select('image');
-        $product_image_builder->where('product_id', $sanitizedPost['product_id']);
+        $product_image_builder->where('product_id', $sanitize_posts['product_id']);
         $images = $product_image_builder->get();
         $productImages = $images->getResult();
        
         $products_builder = $this->db->table('products');
-        $products_builder->where("id", $sanitizedPost["product_id"]);
+        $products_builder->where("id", $sanitize_posts["product_id"]);
         $products_builder->delete();
         
         if($productImages && $this->db->affectedRows()) {
@@ -81,7 +82,7 @@ class ProductsModel extends Model
 
     public function update_product(array $posts, array $images = [], array $imageToBeDeleted): array {
         unset($posts['imageToBeDeleted']);
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         if($imageToBeDeleted) {
             $imageId = [];
             foreach($imageToBeDeleted as $image) {
@@ -91,35 +92,35 @@ class ProductsModel extends Model
             $this->db->query($sql, [$imageId]);
             $this->db->affectedRows();
         }
-        if($images || @$sanitizedPost['setMainImageIndex'] != null) {
-            if(@$sanitizedPost['setMainImageIndex'] != null) {
+        if($images || @$sanitize_posts['setMainImageIndex'] != null) {
+            if(@$sanitize_posts['setMainImageIndex'] != null) {
                 $sql = "UPDATE product_images SET status = 0 WHERE product_id = ?";
-                $this->db->query($sql, [$sanitizedPost['product_id']]);
+                $this->db->query($sql, [$sanitize_posts['product_id']]);
                 $this->db->affectedRows();
             }
             foreach ($images as $image) {
-                $imagesWithMainSet[] = ['product_id' => $sanitizedPost['product_id'], 'image' => $image['image'], 'status' => $image['status']];
+                $imagesWithMainSet[] = ['product_id' => $sanitize_posts['product_id'], 'image' => $image['image'], 'status' => $image['status']];
             }
             $update_product_images_builder = $this->db->table('product_images');
             $update_product_images_builder->insertBatch($imagesWithMainSet);
         } else {
             $sql = "UPDATE product_images SET status = IF(id = ?, 1, 0) WHERE product_id = ?";
-            $this->db->query($sql, [$sanitizedPost['previousImageSetMain'], $sanitizedPost['product_id']]);
+            $this->db->query($sql, [$sanitize_posts['previousImageSetMain'], $sanitize_posts['product_id']]);
             $this->db->affectedRows();
         }
         $update_products_builder = $this->db->table('products');
         $data = [
-            'category_id' => $sanitizedPost['category_id'],
-            'brand_id' => $sanitizedPost['brand_id'],
-            'name' => $sanitizedPost['name'],
-            'description' => $sanitizedPost['description'],
-            'price' => $sanitizedPost['price'],
+            'category_id' => $sanitize_posts['category_id'],
+            'brand_id' => $sanitize_posts['brand_id'],
+            'name' => $sanitize_posts['name'],
+            'description' => $sanitize_posts['description'],
+            'price' => $sanitize_posts['price'],
             'updated_at' => date("Y-m-d H:i:s"),
         ];
-        $update_products_builder->where('id', $sanitizedPost['product_id']);
+        $update_products_builder->where('id', $sanitize_posts['product_id']);
         $update_products_builder->update($data);
         if($this->db->affectedRows()) {
-            return $this->get_products($sanitizedPost['product_id']);
+            return $this->get_products($sanitize_posts['product_id']);
         } else {
             return [];
         }
@@ -128,7 +129,7 @@ class ProductsModel extends Model
     public function add_product(array $posts, array $images): array
     {
         unset($posts['setMainImageIndex']);
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $insertProductDetailsQuery = $this->db->prepare(function ($db) {
             return $db->table('products')
               ->insert([
@@ -139,7 +140,7 @@ class ProductsModel extends Model
                    'price' => '5',
               ]);
         });
-        $result = $insertProductDetailsQuery->execute($sanitizedPost['category_id'], $sanitizedPost['brand_id'], $sanitizedPost['name'], $sanitizedPost['description'], $sanitizedPost['price']);
+        $result = $insertProductDetailsQuery->execute($sanitize_posts['category_id'], $sanitize_posts['brand_id'], $sanitize_posts['name'], $sanitize_posts['description'], $sanitize_posts['price']);
         $lastId = empty($result->error) ? $this->db->insertID() : 0;
         $imagesWithMainSet = [];
         foreach ($images as $image) {
@@ -153,10 +154,10 @@ class ProductsModel extends Model
 
     
     public function add_category(array $posts): array {
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $category_builder = $this->db->table('categories');
         $category_builder->select('id as category_id, category_name');
-        $checkCategoryNameQuery = $category_builder->getWhere($sanitizedPost);
+        $checkCategoryNameQuery = $category_builder->getWhere($sanitize_posts);
         if(count($checkCategoryNameQuery->getResult())) {
             return ['category_exists' => true];
         }
@@ -166,17 +167,17 @@ class ProductsModel extends Model
                    'category_name' => '1',
               ]);
         });
-        $result = $insertCategoryQuery->execute($sanitizedPost['category_name']);
+        $result = $insertCategoryQuery->execute($sanitize_posts['category_name']);
         $lastId = empty($result->error) ? $this->db->insertID() : 0;
         $getInsertedCategoryQuery = $category_builder->getWhere(['id' => $lastId], 1);
         return empty($result->error) ? $getInsertedCategoryQuery->getResult() : [];
     }
 
     public function add_brand(array $posts): array {
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $brand_builder = $this->db->table('brands');
         $brand_builder->select('id as brand_id, brand_name');
-        $query = $brand_builder->getWhere($sanitizedPost);
+        $query = $brand_builder->getWhere($sanitize_posts);
         if(count($query->getResult())) {
             return ['brand_exists' => true];
         }
@@ -186,7 +187,7 @@ class ProductsModel extends Model
                    'brand_name' => '1',
               ]);
         });
-        $result = $insertBrandQuery->execute($sanitizedPost['brand_name']);
+        $result = $insertBrandQuery->execute($sanitize_posts['brand_name']);
         $lastId = empty($result->error) ? $this->db->insertID() : 0;
         $getInsertedBrandQuery = $brand_builder->getWhere(['id' => $lastId], 1);
         return empty($result->error) ? $getInsertedBrandQuery->getResult() : [];
@@ -202,26 +203,26 @@ class ProductsModel extends Model
 
 
     public function update_category_brand(string $table, array $posts, string $name): array {
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $category_brand_builder = $this->db->table($table);
-        $checkResult = $category_brand_builder->getWhere(["{$name}_name" => $sanitizedPost["{$name}_name"]]);
+        $checkResult = $category_brand_builder->getWhere(["{$name}_name" => $sanitize_posts["{$name}_name"]]);
         if(count($checkResult->getResult())) {
             return ["{$name}_exists" => true];
         }
-        $category_brand_builder->set("{$name}_name", $sanitizedPost["{$name}_name"]);
-        $category_brand_builder->where("id", $sanitizedPost["{$name}_id"]);
+        $category_brand_builder->set("{$name}_name", $sanitize_posts["{$name}_name"]);
+        $category_brand_builder->where("id", $sanitize_posts["{$name}_id"]);
         $result = $category_brand_builder->update();
         if($result) {
-            return ["{$name}_name" => $sanitizedPost["{$name}_name"]];
+            return ["{$name}_name" => $sanitize_posts["{$name}_name"]];
         } else {
             return [];
         }
     }
 
     public function delete_category_brand(string $table, array $posts, string $name) {
-        $sanitizedPost = $this->sanitizing($posts);
+        $sanitize_posts = $this->sanitizing($posts);
         $category_brand_builder = $this->db->table($table);
-        $category_brand_builder->where("id", $sanitizedPost["{$name}_id"]);
+        $category_brand_builder->where("id", $sanitize_posts["{$name}_id"]);
         $category_brand_builder->delete();
         return $this->db->affectedRows();
     }
@@ -234,9 +235,9 @@ class ProductsModel extends Model
     }
 
     public function get_filter_products(array $posts): array {
-        $sanitizedPost = $this->sanitizing($posts);
-        $getFilterLeadsQuery = "SELECT products.id as product_id, name, description, image FROM products INNER JOIN product_images ON product_images.product_id = products.id WHERE product_images.status = 1 ORDER BY products.created_at DESC LIMIT ?, ?";
-        $query = $this->db->query($getFilterLeadsQuery, [intval($sanitizedPost['page_number']), 5]);
+        $sanitize_posts = $this->sanitizing($posts);
+        $getFilterLeadsQuery = "SELECT products.id as product_id, name, description, image, stock_quantity, stock_sold, stock_status FROM products INNER JOIN product_images ON product_images.product_id = products.id LEFT JOIN stocks ON stocks.product_id = products.id WHERE product_images.status = 1 ORDER BY products.created_at DESC LIMIT ?, ?";
+        $query = $this->db->query($getFilterLeadsQuery, [intval($sanitize_posts['page_number']), 5]);
         $row = $query->getResult();
         $this->db->close();
         if ($row) {
@@ -260,4 +261,39 @@ class ProductsModel extends Model
         return $product->getResult();
     }
 
+    public function add_quantity(array $posts): array {
+        $sanitize_posts = $this->sanitizing($posts);
+        $stock_builder = $this->db->table('stocks');
+        $stock_builder->select('*');
+        $stock_builder->where('product_id', $sanitize_posts['product_id']);
+        $checkProduct = $stock_builder->get();
+        $product = $checkProduct->getRow();
+        if($product == null) {
+            $data = [
+                'product_id' => $sanitize_posts['product_id'],
+                'stock_quantity' => $sanitize_posts['quantity'],
+                'stock_sold' => 0
+            ];
+            $stock_builder->insert($data);
+        } else {
+            $stock_builder->set('stock_quantity', $product->stock_quantity + $sanitize_posts['quantity']);
+            $stock_builder->set('updated_at', date("Y-m-d H:i:s"));
+            $stock_builder->where('product_id', $sanitize_posts['product_id']);
+            $stock_builder->update();
+        }
+        return $this->db->affectedRows() ? $this->get_products($sanitize_posts['product_id']) : [];
+    }
+
+    public function check_has_product_stock(array $posts): bool {
+        $sanitize_posts = $this->sanitizing($posts);
+        $stock_builder = $this->db->table('stocks');
+        $stock_builder->select('*');
+        $stock_builder->where('product_id', $sanitize_posts['product_id']);
+        $stock = $stock_builder->get();
+        $product_stock = $stock->getRow();
+        if($product_stock->stock_quantity < $sanitize_posts['quantity']){
+            return false;
+        }
+        return true;
+    }
 }

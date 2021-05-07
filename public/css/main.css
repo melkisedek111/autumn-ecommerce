@@ -2504,6 +2504,19 @@ body::-webkit-scrollbar-thumb {
   color: gray;
 }
 
+.shipped {
+  background-color: #26fa26 !important;
+}
+
+.process {
+  background-color: lightgray !important;
+}
+
+.cancelled {
+  background-color: red !important;
+  color: white;
+}
+
 .error {
   border-bottom: .5px solid red;
 }
