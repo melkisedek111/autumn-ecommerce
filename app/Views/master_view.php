@@ -83,50 +83,58 @@
             <a href="/home">Home</a>
             <a href="/shop">Shop</a>
             <?php if(session()->has('user')): ?>
+                <?php if(session()->get('user')->user_type == 'normal'): ?>
+                    <a href="/my_orders">My Orders</a>
+                <?php endif; ?>
+            <?php endif; ?>
+            <?php if(session()->has('user')): ?>
                 <?php if(session()->get('user')->user_type == 'admin'): ?>
                     <a href="/main">Orders</a>
                     <a href="/products">Products</a>
-                    <a href="/collections">Collections</a>
                 <?php endif; ?>
             <?php endif; ?>
           
         </div>
         <div class="nav__userLinks">
-            <a href=""><i class="far fa-user"></i></a>
-            <div class="linkCartContainer">
-                <a href="/cart" class="myCart"><i class="far fa-shopping-bag"></i><span class="nav__cartCount">0</span></a>
-                <div class="cartContainerOutside">
-                    <div class="cartContainerInside">
-                        <h2>Items in Bag: <span id="totalItemsInBag">0</span></h2>
-                        <div class="cartItemList">
-                            <!-- <div>
-                                <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
-                                <div>
-                                    <h3>Dark Cloak Embroid Design</h3>
-                                    <p><span>$49.99</span> X <span>6</span></p>
-                                </div>
-                            </div>
-                            <div>
-                                <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
-                                <div>
-                                    <h3>Dark Cloak Embroid Design</h3>
-                                    <p><span>$49.99</span> X <span>6</span></p>
-                                </div>
-                            </div>
-                            <div>
-                                <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
-                                <div>
-                                    <h3>Dark Cloak Embroid Design</h3>
-                                    <p><span>$49.99</span> X <span>6</span></p>
-                                </div>
-                            </div> -->
-                        </div>
-                        <a href="">Go to checkout</a>
-                    </div>
-                </div>
-            </div>
             <?php if(session()->has('user')): ?>
-
+                <?php if(session()->get('user')->user_type == 'normal'): ?>
+                    <a href=""><i class="far fa-user"></i></a>
+                    <div class="linkCartContainer">
+                        <a href="/cart" class="myCart"><i class="far fa-shopping-bag"></i><span class="nav__cartCount">0</span></a>
+                        <div class="cartContainerOutside">
+                            <div class="cartContainerInside">
+                                <h2>Items in Bag: <span id="totalItemsInBag">0</span></h2>
+                                <div class="cartItemList">
+                                    <!-- <div>
+                                        <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
+                                        <div>
+                                            <h3>Dark Cloak Embroid Design</h3>
+                                            <p><span>$49.99</span> X <span>6</span></p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
+                                        <div>
+                                            <h3>Dark Cloak Embroid Design</h3>
+                                            <p><span>$49.99</span> X <span>6</span></p>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <img src="https://images.pexels.com/photos/322207/pexels-photo-322207.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
+                                        <div>
+                                            <h3>Dark Cloak Embroid Design</h3>
+                                            <p><span>$49.99</span> X <span>6</span></p>
+                                        </div>
+                                    </div> -->
+                                </div>
+                                <a href="">Go to checkout</a>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            <?php endif; ?>
+            
+            <?php if(session()->has('user')): ?>
                 <div class="userPlaceholder">
                     <div class="imageHolder">
                         <img src="https://cdn0.iconfinder.com/data/icons/user-pictures/100/unknown2-512.png" alt="">
@@ -230,7 +238,6 @@
             pageNumberContainer.setAttribute('class', 'pageNumbers');
             $('.tablePagination').html(pageNumberContainer);
             const  totalNumberPages = totalRecords % rowOffSet > 0 ? Math.round(totalRecords / rowOffSet) + 1 : Math.round(totalRecords / rowOffSet);
-   
             const secondLast = totalNumberPages - 1;
             let offset = (pageNumber - 1) * rowOffSet;
             let nextPage = pageNumber + 1;

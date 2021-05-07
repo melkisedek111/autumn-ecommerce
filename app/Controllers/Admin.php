@@ -4,12 +4,15 @@ namespace App\Controllers;
 
 use App\Helpers\Utilities;
 use App\Models\ProductsModel;
+use App\Models\CheckoutsModel;
+use App\Models\UsersModel;
 
 class Admin extends BaseController
 {
     protected $session;
     protected $requests;
     protected $ProductsModel;
+    protected $CheckoutsModel;
     protected $token;
     protected $rules;
     protected $messages;
@@ -18,6 +21,7 @@ class Admin extends BaseController
     public function __construct()
     {
         $this->ProductsModel = new ProductsModel;
+        $this->CheckoutsModel = new CheckoutsModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
@@ -33,6 +37,7 @@ class Admin extends BaseController
                 'category_name' => 'required|min_length[2]|max_length[250]',
                 'brand_name' => 'required|min_length[2]|max_length[250]',
                 'page_number' => 'required|numeric',
+                'order_id' => 'required|numeric',
         ];
         $this->messages = [
             'name' => [
@@ -78,6 +83,10 @@ class Admin extends BaseController
                 'required' => 'Page number is required!',
                 'numeric' => 'Product should be numeric',
             ],
+            'order_id' => [
+                'required' => 'Order ID is required!',
+                'numeric' => 'Order ID should be numeric',
+            ],
         ];
         if ($this->requests->getPost()) {
             $this->rulesAndMessages = $this->utilities->getRules($this->rules, $this->messages, $this->requests->getPost());
@@ -101,16 +110,17 @@ class Admin extends BaseController
 
     public function index()
     {
+        $order = $this->CheckoutsModel->get_user_order();
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
-        return view('main_view');
+        return view('main_view', ['orders' => $order]);
     }
     
     public function products()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $categories = $this->ProductsModel->get_categories_brand('categories', 'id as category_id, category_name', 'created_at DESC');
         $brands = $this->ProductsModel->get_categories_brand('brands', 'id as brand_id, brand_name', 'created_at DESC');
@@ -122,7 +132,7 @@ class Admin extends BaseController
     public function add_product_process()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -172,7 +182,7 @@ class Admin extends BaseController
 
     public function delete_product_process() {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -224,7 +234,7 @@ class Admin extends BaseController
     public function update_process()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -261,7 +271,7 @@ class Admin extends BaseController
     public function add_category_brand()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -298,7 +308,7 @@ class Admin extends BaseController
     public function delete_process()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -325,7 +335,7 @@ class Admin extends BaseController
 
     public function filter_products() {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -347,7 +357,7 @@ class Admin extends BaseController
     public function get_product()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -367,7 +377,7 @@ class Admin extends BaseController
     public function get_total_product_rows()
     {
         if (!$this->utilities->isUserLogin('admin')) {
-            return redirect()->to('/admin');
+            return redirect()->to('/');
         }
         $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
         if ($this->requests->getMethod(true) == "POST") {
@@ -376,5 +386,58 @@ class Admin extends BaseController
                 echo json_encode($data);
             }
         }
+    }
+
+    public function update_order_status() {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/');
+        }
+        $data['token'] = $this->token; // --> this token is used for HTTP/Ajax request only, to refresh the old CSRF Token
+        if ($this->requests->getMethod(true) == "POST") {
+            if (!$this->validatePost($this->rulesAndMessages['rules'], $this->rulesAndMessages['messages'], $this->requests->getPost(), "order")) {
+                $data['internalValidationError'] = true;
+                $data['internalValidationErrorMessage'] = "Validation Error or Internal Server Error";
+                echo json_encode($data);
+            } else {
+                if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && ($_SERVER['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest')) {
+                    $order_status_updated = $this->CheckoutsModel->update_oders_status($this->requests->getPost());
+                    $data['orderStatusUpdated'] = $order_status_updated ? 'Order status has been updated' : false;
+                    echo json_encode($data);
+                }
+            }
+        }
+    }
+
+    public function order(string $id) {
+        if (!$this->utilities->isUserLogin('admin')) {
+            return redirect()->to('/');
+        }
+        $user_orders = $this->CheckoutsModel->get_user_order_by_id(['order_id' => $id]);
+        if($user_orders) {
+            if($user_orders['order_details']->order_status == 'Shipped') {
+                $order_status = "shipped";
+            } elseif ($user_orders['order_details']->order_status == 'Order in process') {
+                $order_status = "process";
+            } elseif ($user_orders['order_details']->order_status == 'Cancelled') {
+                $order_status = "cancelled";
+            }
+            return view('show_order_view', [
+                'order_details' => $user_orders['order_details'], 
+                'address_details' => $user_orders['address_details'], 
+                'order_products_details' => $user_orders['order_products_details'],
+                'truncate' => function ($text, $limit) {
+                    if (str_word_count($text, 0) > $limit) {
+                        $words = str_word_count($text, 2);
+                        $pos   = array_keys($words);
+                        $text  = substr($text, 0, $pos[$limit]) . '...';
+                    }
+                    return $text;
+                },
+                'order_status' => $order_status
+            ]);
+        } else {
+            return redirect()->to('/main');
+        }
+        
     }
 }

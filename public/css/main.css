@@ -500,7 +500,7 @@ body::-webkit-scrollbar-thumb {
   font-weight: 400;
 }
 
-.latestItems .latestItems__container .itemDetails .itemPrice span {
+.latestItems .latestItems__container .itemDetails .itemPrice span, .latestItems .latestItems__container .itemDetails .itemPrice a {
   color: #000;
   background-color: #fff;
   background-image: -webkit-gradient(linear, left top, left bottom, from(#000), to(#000));
@@ -523,6 +523,11 @@ body::-webkit-scrollbar-thumb {
 }
 
 .latestItems .latestItems__container .itemDetails .itemPrice span:hover {
+  color: #fff;
+  background-size: 100% 100%;
+}
+
+.latestItems .latestItems__container .itemDetails .itemPrice a:hover {
   color: #fff;
   background-size: 100% 100%;
 }
@@ -2235,12 +2240,10 @@ body::-webkit-scrollbar-thumb {
 }
 
 .adminProductOrder__details--itemSummary > div > div {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
+  display: -ms-grid;
+  display: grid;
+  -ms-grid-columns: 1fr 1.5fr 1fr;
+      grid-template-columns: 1fr 1.5fr 1fr;
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
@@ -2257,7 +2260,8 @@ body::-webkit-scrollbar-thumb {
 }
 
 .adminProductOrder__details--itemSummary > div > div h3 {
-  margin: 0;
+  margin: 0 auto;
+  word-wrap: break-word;
 }
 
 .adminProductOrder__details--itemSummary > div > div > div small {
@@ -2297,7 +2301,7 @@ body::-webkit-scrollbar-thumb {
   background-color: lightgray;
 }
 
-.adminProductOrder__details--itemSummary .canceled {
+.adminProductOrder__details--itemSummary .cancelled {
   background-color: red;
   color: white;
 }

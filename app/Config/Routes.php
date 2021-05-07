@@ -39,6 +39,7 @@ $routes->get('/register', 'User::register');
 $routes->get('/logout', 'User::logout');
 $routes->get('/set_address', 'User::set_address');
 $routes->get('/admin', 'User::admin_login');
+$routes->get('/my_orders', 'User::my_orders');
 $routes->get('/main', 'Admin::index');
 $routes->get('/products', 'Admin::products');
 $routes->get('/shop', 'Shop::index');
@@ -47,6 +48,7 @@ $routes->get('/products/show/(:any)', 'Shop::products/$1');
 $routes->get('/cart', 'Cart::index');
 $routes->get('/checkout', 'Checkout::index');
 $routes->get('/success', 'Checkout::success');
+$routes->get('/orders/(:any)', 'Admin::order/$1');
 
 
 

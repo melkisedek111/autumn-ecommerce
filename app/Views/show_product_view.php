@@ -3,7 +3,7 @@
 <?=$this->section("content")?>
 <div class="product">
             <div class="product__breadcrumb">
-                <a href="">Home</a> <span> / </span>
+                <a href="/shop">Shop</a> <span> / </span>
                 <h4 href=""><?= $products['details']->category_name; ?></h4> <span> / </span>
                 <h4 href=""><?= $products['details']->name; ?></h4>
             </div>

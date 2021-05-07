@@ -63,111 +63,54 @@
         <div></div>
     </div>
     <div class="latestItems">
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/2529157/pexels-photo-2529157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Nike Jordan Air Mac Edition</h1>
-                    <h4 class="itemCategory">Shoes & Sneakers</h4>
+        <?php foreach($latest_product as $product): ?>
+            <div class="latestItems__container">
+                <div class="imageContainer">
+                    <a href="">
+                        <img src="/assets/product_uploads/<?= $product->image; ?>" alt="<?= $product->name; ?>">
+                    </a>
                 </div>
-                <div class="itemPrice">
-                    <h3>$49.99</h3>
-                    <span class="far fa-shopping-bag"></span>
-                </div>
-            </div>
-        </div>
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/3850557/pexels-photo-3850557.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Lactote Designer Bag</h1>
-                    <h4 class="itemCategory">Bags & Backpacks</h4>
-                </div>
-                <div class="itemPrice">
-                    <h3>$49.99</h3>
-                    <span class="far fa-shopping-bag"></span>
+                <div class="itemDetails">
+                    <div class="itemTitle">
+                        <h1 class="itemName"><?= $truncate($product->name, 3); ?></h1>
+                        <h4 class="itemCategory"><?= $product->category_name; ?></h4>
+                    </div>
+                    <div class="itemPrice">
+                        <h3>$<?= $product->price; ?></h3>
+                        <?php if(session()->has('user')): ?>
+                            <span class="far fa-shopping-bag shopAddToCart" data-product-id="<?= $product->product_id ?>"></span>
+                        <?php else: ?>
+                            <a href="/login" class="far fa-shopping-bag"></a>
+                        <?php endif; ?>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/157675/fashion-men-s-individuality-black-and-white-157675.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Dark Cloak Embroid Design</h1>
-                    <h4 class="itemCategory">Men's Wear / Suit</h4>
-                </div>
-                <div class="itemPrice">
-                    <h3>$249.99</h3>
-                    <span class="far fa-shopping-bag"></span>
-                </div>
-            </div>
-        </div>
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/4066290/pexels-photo-4066290.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Levi Jeans</h1>
-                    <h4 class="itemCategory">Men's Wear / Suit</h4>
-                </div>
-                <div class="itemPrice">
-                    <h3>$59.99</h3>
-                    <span class="far fa-shopping-bag"></span>
-                </div>
-            </div>
-        </div>
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/6311114/pexels-photo-6311114.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Plain Gray T Shirts</h1>
-                    <h4 class="itemCategory">Men's Wear / Suit</h4>
-                </div>
-                <div class="itemPrice">
-                    <h3>$59.99</h3>
-                    <span class="far fa-shopping-bag"></span>
-                </div>
-            </div>
-        </div>
-        <div class="latestItems__container">
-            <div class="imageContainer">
-                <a href="">
-                    <img src="https://images.pexels.com/photos/1454185/pexels-photo-1454185.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500" alt="">
-                </a>
-            </div>
-            <div class="itemDetails">
-                <div class="itemTitle">
-                    <h1 class="itemName">Red Rose Quart Necklace</h1>
-                    <h4 class="itemCategory">Necklace</h4>
-                </div>
-                <div class="itemPrice">
-                    <h3>$359.99</h3>
-                    <span class="far fa-shopping-bag"></span>
-                </div>
-            </div>
-        </div>
+        <?php endforeach; ?>
     </div>
     <script>
         $(document).ready(function() {
+            $(document).on('click', '.shopAddToCart', function() {
+                const productId = $(this).attr('data-product-id');
+                const data = {
+                    product_id: sanitizeHtml(productId),
+                    quantity: 1
+                }
+                const response = ajax(data, '/cart/add_to_cart_process');
+                response.done(e => {
+                    refreshToken(e);
+                    if(e.internalValidationError) {
+                        alertMessage(e.internalValidationErrorMessage, 'alertDanger'); // --> message if there are somethings wrong in validations
+                    } else {
+                        if(e.cart) {
+                            update_cart_items(e.cart);
+                            alertAddCart(e.cart, productId);
+                        }
+                        if(e.error) {
+                            alertMessage(e.error, 'alertDanger');
+                        }
+                    }
+                });
+            });
         });
     </script>
 <?=$this->endSection()?>

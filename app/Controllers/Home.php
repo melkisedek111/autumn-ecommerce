@@ -4,12 +4,14 @@ namespace App\Controllers;
 
 use App\Helpers\Utilities;
 use App\Models\UsersModel;
+use App\Models\ProductsModel;
 
 class Home extends BaseController
 {
     protected $session;
     protected $requests;
     protected $UsersModel;
+    protected $ProductsModel;
     protected $token;
     protected $rules;
     protected $messages;
@@ -19,6 +21,7 @@ class Home extends BaseController
     {
    
         $this->UsersModel = new UsersModel;
+        $this->ProductsModel = new ProductsModel;
         $this->requests = \Config\Services::request();
         $this->session = session();
         $this->token = ['name' => csrf_token(), 'value' => csrf_hash()];
@@ -127,6 +130,18 @@ class Home extends BaseController
                 return redirect()->to('/set_address');
             }
         }
-        return view('home_view');
+        $latest_product = $this->ProductsModel->get_latest_product();
+
+        return view('home_view', [
+            'latest_product' => $latest_product,
+            'truncate' => function ($text, $limit) {
+                if (str_word_count($text, 0) > $limit) {
+                    $words = str_word_count($text, 2);
+                    $pos   = array_keys($words);
+                    $text  = substr($text, 0, $pos[$limit]) . '...';
+                }
+                return $text;
+            },
+        ]);
     }  
 }

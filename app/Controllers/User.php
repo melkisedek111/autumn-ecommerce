@@ -160,6 +160,15 @@ class User extends BaseController
     {
         return view('admin_login_view', ['pageTitle' => 'Admin Login']);
     }
+    public function my_orders()
+    {
+        if (!$this->utilities->isUserLogin('normal')) {
+            return redirect()->to('/');
+        }
+        $user = $this->session->get('user');
+        $orders = $this->UsersModel->get_user_orders(['user_id' => $user->user_id]);
+        return view('user_order_view', ['order_details' => $orders['order_details'], 'order_product_lists' => $orders['order_product_lists']]);
+    }
     public function set_address()
     {
         $isAddressSet = $this->utilities->checkUserAddress(['user_id' => $this->session->get('user')->user_id]);

@@ -137,7 +137,7 @@ class Checkout extends BaseController
                         $carry += $item->quantity;
                         return $carry;
                     });
-                    $order = $this->CheckoutsModel->insert_user_order($this->requests->getPost(), $transaction['transaction_id'], $user->user_id, $totalItem, $charge->amount_captured);
+                    $order = $this->CheckoutsModel->insert_user_order($this->requests->getPost(), $transaction['transaction_id'], $user->user_id, $totalItem, $totalAmount);
                     $order_products = $this->CheckoutsModel->insert_order_products($cart_items, $order['order_id']);
                     if($order_products) {
                         $this->CartsModel->remove_all_items_from_cart($cart_items, $user->user_id);
